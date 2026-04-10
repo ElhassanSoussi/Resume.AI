@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>{{ personal.full_name or resume_title }}</title>
+  <style>
+    @page { size: A4; margin: 14mm; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      font-size: 10.5pt;
+      line-height: 1.45;
+      color: #1a1a1a;
+      margin: 0;
+    }
+    h1 {
+      font-size: 22pt;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      margin: 0 0 4px 0;
+    }
+    .tagline { font-size: 9.5pt; color: #444; margin-bottom: 12px; }
+    .contact {
+      font-size: 9pt;
+      color: #333;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 10px;
+      margin-bottom: 14px;
+    }
+    .contact span { margin-right: 12px; }
+    h2 {
+      font-size: 11pt;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #111;
+      border-bottom: 2px solid #111;
+      padding-bottom: 4px;
+      margin: 18px 0 10px 0;
+    }
+    .summary { font-size: 10pt; color: #222; }
+    .job { margin-bottom: 14px; }
+    .job-head { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+    .job-title { font-weight: 600; font-size: 11pt; }
+    .company { font-weight: 500; }
+    .dates { font-size: 9pt; color: #555; white-space: nowrap; }
+    .loc { font-size: 9pt; color: #666; margin-top: 2px; }
+    ul { margin: 6px 0 0 18px; padding: 0; }
+    li { margin-bottom: 3px; }
+    .edu { margin-bottom: 10px; }
+    .skill-row { margin-bottom: 6px; }
+    .skill-cat { font-weight: 600; display: inline; }
+    .skill-items { display: inline; color: #333; }
+    a { color: #1a1a1a; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>{{ personal.full_name }}</h1>
+    <div class="tagline">{{ resume_title }}</div>
+    <div class="contact">
+      {% if personal.email %}<span>{{ personal.email }}</span>{% endif %}
+      {% if personal.phone %}<span>{{ personal.phone }}</span>{% endif %}
+      {% if personal.location %}<span>{{ personal.location }}</span>{% endif %}
+      {% if personal.website %}<span>{{ personal.website }}</span>{% endif %}
+      {% if personal.linkedin_url %}<span>{{ personal.linkedin_url }}</span>{% endif %}
+      {% if personal.github_url %}<span>{{ personal.github_url }}</span>{% endif %}
+    </div>
+  </header>
+
+  {% if summary %}
+  <section>
+    <h2>Summary</h2>
+    <p class="summary">{{ summary }}</p>
+  </section>
+  {% endif %}
+
+  {% if experiences %}
+  <section>
+    <h2>Experience</h2>
+    {% for job in experiences %}
+    <div class="job">
+      <div class="job-head">
+        <div>
+          <div class="job-title">{{ job.job_title }}</div>
+          <div class="company">{{ job.company }}{% if job.location %} — {{ job.location }}{% endif %}</div>
+        </div>
+        <div class="dates">{{ job.date_range }}</div>
+      </div>
+      {% if job.bullets %}
+      <ul>
+        {% for b in job.bullets %}<li>{{ b }}</li>{% endfor %}
+      </ul>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </section>
+  {% endif %}
+
+  {% if educations %}
+  <section>
+    <h2>Education</h2>
+    {% for edu in educations %}
+    <div class="edu">
+      <div class="job-head">
+        <div>
+          <div class="job-title">{{ edu.degree }}{% if edu.field_of_study %}, {{ edu.field_of_study }}{% endif %}</div>
+          <div class="company">{{ edu.institution }}{% if edu.location %} — {{ edu.location }}{% endif %}</div>
+        </div>
+        <div class="dates">{{ edu.date_range }}</div>
+      </div>
+      {% if edu.gpa %}<div class="loc">GPA: {{ edu.gpa }}</div>{% endif %}
+      {% if edu.description %}<p class="summary">{{ edu.description }}</p>{% endif %}
+    </div>
+    {% endfor %}
+  </section>
+  {% endif %}
+
+  {% if skills %}
+  <section>
+    <h2>Skills</h2>
+    {% for sk in skills %}
+    <div class="skill-row">
+      <span class="skill-cat">{{ sk.category }}:</span>
+      <span class="skill-items">{{ sk.items | join(', ') }}</span>
+    </div>
+    {% endfor %}
+  </section>
+  {% endif %}
+</body>
+</html>
