@@ -98,7 +98,7 @@ export async function apiFetch<T>(
   const headers = new Headers(options.headers);
 
   if (!options.skipAuth) {
-    const token = getAccessToken();
+    const token = await getAccessToken();
     if (token) {
       headers.set("Authorization", `Bearer ${token}`);
     }

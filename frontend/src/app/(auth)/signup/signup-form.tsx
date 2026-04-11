@@ -6,9 +6,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 
 import { AUTH_ROUTES, APP_ROUTES } from "@/lib/auth/routes";
-import { loginUser, registerUser } from "@/lib/api/auth";
-import { ApiError } from "@/lib/api/client";
-import { setAccessToken } from "@/lib/auth/token";
+import { registerUser } from "@/lib/api/auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -17,13 +15,17 @@ import { Label } from "@/components/ui/label";
 export function SignupForm() {
   const router = useRouter();
   const [pending, setPending] = useState(false);
+  const [confirmationEmail, setConfirmationEmail] = useState<string | null>(null);
 
-  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function onSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
-    const full_name = String(fd.get("name") ?? "").trim();
-    const email = String(fd.get("email") ?? "").trim();
-    const password = String(fd.get("password") ?? "");
+    const nameValue = fd.get("name");
+    const emailValue = fd.get("email");
+    const passwordValue = fd.get("password");
+    const full_name = (typeof nameValue === "string" ? nameValue : "").trim();
+    const email = (typeof emailValue === "string" ? emailValue : "").trim();
+    const password = typeof passwordValue === "string" ? passwordValue : "";
 
     if (!full_name || !email || !password) {
       toast.error("Fill in all fields.");
@@ -32,19 +34,23 @@ export function SignupForm() {
 
     setPending(true);
     try {
-      await registerUser({ email, password, full_name });
-      const tokens = await loginUser({ email, password });
-      setAccessToken(tokens.access_token);
-      toast.success("Account created", { description: "Welcome to ResumeForge AI." });
-      router.replace(APP_ROUTES.dashboard);
-      router.refresh();
+      const result = await registerUser({ email, password, full_name });
+      if (result.session != null) {
+        toast.success("Account created", { description: "Welcome to ResumeForge AI." });
+        router.replace(APP_ROUTES.dashboard);
+        router.refresh();
+        return;
+      }
+
+      setConfirmationEmail(email);
+      toast.success("Confirm your email", {
+        description: "We sent you a confirmation link before you can sign in.",
+      });
     } catch (err) {
       let msg: string;
-      if (err instanceof ApiError) {
-        msg = err.message;
-      } else if (err instanceof TypeError) {
+      if (err instanceof TypeError) {
         msg =
-          "Cannot reach the API. Start FastAPI (e.g. uvicorn on port 8000), restart `npm run dev` after changing next.config, and check API_PROXY_TARGET.";
+          "Cannot reach Supabase. Check that NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are set.";
       } else {
         msg = err instanceof Error ? err.message : "Could not create account.";
       }
@@ -59,10 +65,20 @@ export function SignupForm() {
       <CardHeader>
         <CardTitle className="font-heading text-2xl">Create your workspace</CardTitle>
         <CardDescription>
-          Use your work email — you will be signed in automatically after registration.
+          Use your work email — we&apos;ll send a confirmation link before first login.
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {confirmationEmail ? (
+          <div className="space-y-4 text-sm text-muted-foreground">
+            <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-emerald-50">
+              Account created for <span className="font-medium">{confirmationEmail}</span>. Check your inbox and click the confirmation link before logging in.
+            </p>
+            <Button type="button" className="w-full" onClick={() => router.replace(AUTH_ROUTES.login)}>
+              Go to login
+            </Button>
+          </div>
+        ) : (
         <form className="space-y-4" onSubmit={onSubmit}>
           <div className="space-y-2">
             <Label htmlFor="name">Full name</Label>
@@ -94,6 +110,7 @@ export function SignupForm() {
             {pending ? "Creating account…" : "Create account"}
           </Button>
         </form>
+        )}
         <p className="mt-6 text-center text-sm text-muted-foreground">
           Already have an account?{" "}
           <Link href={AUTH_ROUTES.login} className="font-medium text-primary hover:underline">

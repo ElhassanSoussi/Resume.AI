@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import asyncio
 import uuid
+from typing import Annotated
 
 from fastapi import APIRouter, Header, Query, Request
 
+from app.core.config import settings
 from app.core.deps import CurrentUserID, DBSession
 from app.repositories.payment import PaymentRepository
 from app.schemas.payment import (
@@ -15,29 +18,46 @@ from app.schemas.payment import (
     ResumePaymentStatusResponse,
     WebhookAckResponse,
 )
+from app.services.supabase_payment_store import list_payments_for_user
 from app.services import stripe_service
 from app.services.payment import PaymentService
 
 router = APIRouter()
 
 
-@router.get("", response_model=list[PaymentRead])
+@router.get("")
 async def list_my_payments(
     user_id: CurrentUserID,
     session: DBSession,
-    offset: int = Query(default=0, ge=0),
-    limit: int = Query(default=50, ge=1, le=100),
+    offset: Annotated[int, Query(ge=0)] = 0,
+    limit: Annotated[int, Query(ge=1, le=100)] = 50,
 ) -> list[PaymentRead]:
     """Paginated payment history for the current user (Stripe checkout rows)."""
-    rows = await PaymentRepository(session).get_by_user(
-        uuid.UUID(user_id),
-        offset=offset,
-        limit=limit,
-    )
+    uid = uuid.UUID(user_id)
+    if settings.supabase_configured:
+        try:
+            rows = await asyncio.to_thread(
+                list_payments_for_user,
+                uid,
+                offset=offset,
+                limit=limit,
+            )
+        except Exception:
+            rows = await PaymentRepository(session).get_by_user(
+                uid,
+                offset=offset,
+                limit=limit,
+            )
+    else:
+        rows = await PaymentRepository(session).get_by_user(
+            uid,
+            offset=offset,
+            limit=limit,
+        )
     return [PaymentRead.model_validate(r) for r in rows]
 
 
-@router.post("/create-checkout-session", response_model=CreateCheckoutSessionResponse)
+@router.post("/create-checkout-session")
 async def create_checkout_session(
     payload: CreateCheckoutSessionRequest,
     user_id: CurrentUserID,
@@ -50,11 +70,11 @@ async def create_checkout_session(
     )
 
 
-@router.post("/webhook", response_model=WebhookAckResponse)
+@router.post("/webhook")
 async def stripe_webhook(
     request: Request,
     session: DBSession,
-    stripe_signature: str | None = Header(default=None, alias="stripe-signature"),
+    stripe_signature: Annotated[str | None, Header(alias="stripe-signature")] = None,
 ) -> WebhookAckResponse:
     """Stripe webhook — signature-verified; updates Payment rows."""
     payload = await request.body()
@@ -63,7 +83,7 @@ async def stripe_webhook(
     return WebhookAckResponse(received=True)
 
 
-@router.get("/status/{resume_id}", response_model=ResumePaymentStatusResponse)
+@router.get("/status/{resume_id}")
 async def payment_status_for_resume(
     resume_id: uuid.UUID,
     user_id: CurrentUserID,

@@ -13,12 +13,14 @@ greenlet>=3.4.0,<4
 
 # Auth & Security
 python-jose[cryptography]==3.3.0
-passlib[bcrypt]==1.7.4
 python-multipart==0.0.19
 
 # HTTP & Async
 httpx==0.28.1
 aiofiles==24.1.0
+
+# Supabase
+supabase==2.15.3
 
 # AI
 openai==1.58.1
@@ -26,18 +28,12 @@ openai==1.58.1
 # Payments
 stripe==11.4.1
 
-# Supabase
-supabase==2.11.0
-
 # PDF Generation
 jinja2==3.1.5
 weasyprint==63.1
 
 # Logging & Monitoring
 structlog==24.4.0
-
-# Environment
-python-dotenv==1.0.1
 
 # Testing
 pytest==8.3.4

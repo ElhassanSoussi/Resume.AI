@@ -18,7 +18,7 @@ from app.core.exceptions import (
     validation_exception_handler,
 )
 from app.core.logging import get_logger, setup_logging
-from app.storage.local import ensure_export_root_exists
+from app.storage import ensure_storage_ready
 
 logger = get_logger(__name__)
 
@@ -26,7 +26,7 @@ logger = get_logger(__name__)
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     setup_logging()
-    ensure_export_root_exists()
+    ensure_storage_ready()
     logger.info(
         "app.startup",
         app=settings.APP_NAME,

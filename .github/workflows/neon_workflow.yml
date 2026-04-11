@@ -1,0 +1,65 @@
+name: Create/Delete Neon Branch for Pull Request
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - closed
+
+env:
+  NEON_PROJECT_ID: ${{ vars.NEON_PROJECT_ID }}
+  NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  setup-branch:
+    if: |
+      github.event.action == 'opened' ||
+      github.event.action == 'reopened' ||
+      github.event.action == 'synchronize'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create Neon branch
+        id: create-branch
+        uses: neondatabase/create-branch-action@v5
+        with:
+          project_id: ${{ env.NEON_PROJECT_ID }}
+          api_key: ${{ env.NEON_API_KEY }}
+          branch_name: preview/pr-${{ github.event.number }}
+          username: neondb_owner
+
+      - name: Post branch info as PR comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = `### 🐘 Neon Preview Branch
+
+            | Property | Value |
+            |----------|-------|
+            | **Branch** | \`preview/pr-${{ github.event.number }}\` |
+            | **Host**   | \`${{ steps.create-branch.outputs.db_url_with_pooler && 'created' || 'see Neon console' }}\` |
+
+            This branch will be deleted when the PR is closed.`;
+
+            // Only comment once (on open), not on every push
+            if (context.payload.action === 'opened' || context.payload.action === 'reopened') {
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body
+              });
+            }
+
+  delete-branch:
+    if: github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete Neon branch
+        uses: neondatabase/delete-branch-action@v3
+        with:
+          project_id: ${{ env.NEON_PROJECT_ID }}
+          api_key: ${{ env.NEON_API_KEY }}
+          branch: preview/pr-${{ github.event.number }}

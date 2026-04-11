@@ -7,8 +7,6 @@ import { toast } from "sonner";
 
 import { AUTH_ROUTES, APP_ROUTES } from "@/lib/auth/routes";
 import { loginUser } from "@/lib/api/auth";
-import { ApiError } from "@/lib/api/client";
-import { setAccessToken } from "@/lib/auth/token";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -17,12 +15,15 @@ import { Label } from "@/components/ui/label";
 export function LoginForm() {
   const router = useRouter();
   const [pending, setPending] = useState(false);
+  const [emailConfirmationHint, setEmailConfirmationHint] = useState<string | null>(null);
 
-  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function onSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
-    const email = String(fd.get("email") ?? "").trim();
-    const password = String(fd.get("password") ?? "");
+    const emailValue = fd.get("email");
+    const passwordValue = fd.get("password");
+    const email = (typeof emailValue === "string" ? emailValue : "").trim();
+    const password = typeof passwordValue === "string" ? passwordValue : "";
 
     if (!email || !password) {
       toast.error("Enter email and password.");
@@ -31,21 +32,24 @@ export function LoginForm() {
 
     setPending(true);
     try {
-      const tokens = await loginUser({ email, password });
-      setAccessToken(tokens.access_token);
+      await loginUser({ email, password });
+      setEmailConfirmationHint(null);
       toast.success("Signed in");
       router.replace(APP_ROUTES.dashboard);
       router.refresh();
     } catch (err) {
       let msg: string;
-      if (err instanceof ApiError) {
-        msg = err.message;
-      } else if (err instanceof TypeError) {
+      if (err instanceof TypeError) {
         msg =
-          "Cannot reach the API. Check that the backend is running and NEXT_PUBLIC_API_URL matches how you open the app (localhost vs 127.0.0.1).";
+          "Cannot reach Supabase. Check that NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are set.";
       } else {
         msg = err instanceof Error ? err.message : "Could not sign in.";
       }
+
+      if (/confirm|verified|email/i.test(msg)) {
+        setEmailConfirmationHint(email);
+      }
+
       toast.error("Login failed", { description: msg });
     } finally {
       setPending(false);
@@ -85,6 +89,11 @@ export function LoginForm() {
             {pending ? "Signing in…" : "Continue"}
           </Button>
         </form>
+        {emailConfirmationHint ? (
+          <p className="mt-4 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-100">
+            Confirm the email sent to <span className="font-medium">{emailConfirmationHint}</span> before logging in.
+          </p>
+        ) : null}
         <p className="mt-6 text-center text-sm text-muted-foreground">
           No account?{" "}
           <Link href={AUTH_ROUTES.signup} className="font-medium text-primary hover:underline">

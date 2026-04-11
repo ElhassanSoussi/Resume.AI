@@ -14,14 +14,22 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 
 from app.core.database import get_db
-from app.core.deps import get_current_user_id
+from app.core.deps import AuthenticatedUser, get_current_auth_user, get_current_user_id
 from app.main import app
 
 TEST_USER_ID = "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
 
 
-async def _override_current_user_id() -> str:
+def _override_current_user_id() -> str:
     return TEST_USER_ID
+
+
+def _override_current_auth_user() -> AuthenticatedUser:
+    return AuthenticatedUser(
+        id=TEST_USER_ID,
+        email="test@example.com",
+        full_name="Test User",
+    )
 
 
 async def _override_get_db() -> AsyncIterator[MagicMock]:
@@ -31,6 +39,7 @@ async def _override_get_db() -> AsyncIterator[MagicMock]:
 @pytest.fixture(autouse=True)
 def _apply_overrides():
     app.dependency_overrides[get_current_user_id] = _override_current_user_id
+    app.dependency_overrides[get_current_auth_user] = _override_current_auth_user
     app.dependency_overrides[get_db] = _override_get_db
     yield
     app.dependency_overrides.clear()

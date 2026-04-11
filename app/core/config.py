@@ -9,6 +9,16 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 
+def _is_placeholder(value: str) -> bool:
+    normalized = value.strip().lower()
+    return normalized in {
+        "",
+        "https://your-project-ref.supabase.co",
+        "your-public-anon-key",
+        "your-service-role-key",
+    }
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=str(BASE_DIR / ".env"),
@@ -40,6 +50,7 @@ class Settings(BaseSettings):
     SUPABASE_ANON_KEY: str = ""
     SUPABASE_SERVICE_ROLE_KEY: str = ""
 
+
     # ── Auth / JWT ───────────────────────────────────────
     JWT_SECRET_KEY: str = "CHANGE_ME"
     JWT_ALGORITHM: str = "HS256"
@@ -60,15 +71,15 @@ class Settings(BaseSettings):
 
     # ── Stripe ───────────────────────────────────────────
     STRIPE_SECRET_KEY: str = ""
-    STRIPE_PUBLISHABLE_KEY: str = ""
     STRIPE_WEBHOOK_SECRET: str = ""
     STRIPE_PRICE_ID_SINGLE_EXPORT: str = ""
-    STRIPE_PRICE_ID_PRO_MONTHLY: str = ""
 
     # ── Storage / PDF exports ──────────────────────────────
-    STORAGE_BUCKET: str = "resumes"
     EXPORT_STORAGE_ROOT: Path = BASE_DIR / "data" / "exports"
     """Root directory for generated PDFs (local filesystem; swap for S3-compatible backend later)."""
+
+    SUPABASE_EXPORTS_BUCKET: str = "resume-exports"
+    SUPABASE_STORAGE_SIGNED_URL_EXPIRES_SECONDS: int = 3600
 
     PUBLIC_FILES_BASE_URL: str = ""
     """Optional base URL for building public links, e.g. https://cdn.example.com/exports"""
@@ -94,6 +105,18 @@ class Settings(BaseSettings):
     @property
     def is_production(self) -> bool:
         return self.APP_ENV == "production"
+
+    @property
+    def supabase_configured(self) -> bool:
+        return bool(
+            not _is_placeholder(self.SUPABASE_URL)
+            and not _is_placeholder(self.SUPABASE_ANON_KEY)
+            and not _is_placeholder(self.SUPABASE_SERVICE_ROLE_KEY)
+        )
+
+    @property
+    def supabase_storage_configured(self) -> bool:
+        return bool(self.supabase_configured and self.SUPABASE_EXPORTS_BUCKET.strip())
 
     @property
     def ai_configured(self) -> bool:

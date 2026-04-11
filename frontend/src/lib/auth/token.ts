@@ -1,17 +1,20 @@
-const STORAGE_KEY = "resumeforge_access_token";
+import type { Session } from "@supabase/supabase-js";
 
-/** Bearer token for `/api/v1` (set after login — see auth routes). */
-export function getAccessToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return window.localStorage.getItem(STORAGE_KEY);
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+
+export async function getCurrentSession(): Promise<Session | null> {
+  const {
+    data: { session },
+  } = await getSupabaseBrowserClient().auth.getSession();
+  return session;
 }
 
-export function setAccessToken(token: string): void {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(STORAGE_KEY, token);
+/** Bearer token for `/api/v1` sourced from the current Supabase session. */
+export async function getAccessToken(): Promise<string | null> {
+  const session = await getCurrentSession();
+  return session?.access_token ?? null;
 }
 
-export function clearAccessToken(): void {
-  if (typeof window === "undefined") return;
-  window.localStorage.removeItem(STORAGE_KEY);
+export async function clearAccessToken(): Promise<void> {
+  await getSupabaseBrowserClient().auth.signOut();
 }

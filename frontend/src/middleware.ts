@@ -2,31 +2,35 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 import { PROTECTED_ROUTE_PREFIXES } from "@/lib/auth/routes";
+import { updateSession } from "@/lib/supabase/middleware";
 
 /**
  * Auth-ready middleware: extend with session / JWT checks.
  * For local development, all routes pass through unless you implement redirects below.
  */
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const { response, user } = await updateSession(request);
 
   const isProtected = PROTECTED_ROUTE_PREFIXES.some(
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
   );
 
   if (!isProtected) {
-    return NextResponse.next();
+    return response;
   }
 
-  // Example: require `access_token` cookie before entering the app shell.
-  // const token = request.cookies.get("access_token")?.value;
-  // if (!token) {
-  //   const login = new URL("/login", request.url);
-  //   login.searchParams.set("from", pathname);
-  //   return NextResponse.redirect(login);
-  // }
+  if (user != null) {
+    return response;
+  }
 
-  return NextResponse.next();
+  const login = new URL("/login", request.url);
+  login.searchParams.set("from", pathname);
+  const redirect = NextResponse.redirect(login);
+  for (const cookie of response.cookies.getAll()) {
+    redirect.cookies.set(cookie.name, cookie.value);
+  }
+  return redirect;
 }
 
 export const config = {

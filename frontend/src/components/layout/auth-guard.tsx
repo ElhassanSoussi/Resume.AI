@@ -2,21 +2,57 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getAccessToken } from "@/lib/auth/token";
 import { AUTH_ROUTES } from "@/lib/auth/routes";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 export function AuthGuard({ children }: Readonly<{ children: React.ReactNode }>) {
   const router = useRouter();
+  const supabase = getSupabaseBrowserClient();
   const [checked, setChecked] = useState(false);
 
   useEffect(() => {
-    const token = getAccessToken();
-    if (token) {
-      setChecked(true);
-    } else {
+    let mounted = true;
+
+    const checkSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!mounted) {
+        return;
+      }
+
+      if (session != null) {
+        setChecked(true);
+        return;
+      }
+
       router.replace(AUTH_ROUTES.login);
-    }
-  }, [router]);
+    };
+
+    void checkSession();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!mounted) {
+        return;
+      }
+
+      if (session != null) {
+        setChecked(true);
+        return;
+      }
+
+      setChecked(false);
+      router.replace(AUTH_ROUTES.login);
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, [router, supabase]);
 
   if (!checked) return null;
 
