@@ -35,11 +35,6 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/resumeforge"
     DATABASE_ECHO: bool = False
 
-    # ── Supabase ─────────────────────────────────────────
-    SUPABASE_URL: str = ""
-    SUPABASE_ANON_KEY: str = ""
-    SUPABASE_SERVICE_ROLE_KEY: str = ""
-
     # ── Auth / JWT ───────────────────────────────────────
     JWT_SECRET_KEY: str = "CHANGE_ME"
     JWT_ALGORITHM: str = "HS256"
@@ -60,13 +55,10 @@ class Settings(BaseSettings):
 
     # ── Stripe ───────────────────────────────────────────
     STRIPE_SECRET_KEY: str = ""
-    STRIPE_PUBLISHABLE_KEY: str = ""
     STRIPE_WEBHOOK_SECRET: str = ""
     STRIPE_PRICE_ID_SINGLE_EXPORT: str = ""
-    STRIPE_PRICE_ID_PRO_MONTHLY: str = ""
 
     # ── Storage / PDF exports ──────────────────────────────
-    STORAGE_BUCKET: str = "resumes"
     EXPORT_STORAGE_ROOT: Path = BASE_DIR / "data" / "exports"
     """Root directory for generated PDFs (local filesystem; swap for S3-compatible backend later)."""
 
