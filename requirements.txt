@@ -9,7 +9,7 @@ sqlalchemy==2.0.36
 alembic==1.14.1
 asyncpg==0.30.0
 # Required for SQLAlchemy async + run_sync / implicit IO in async sessions
-greenlet==3.1.1
+greenlet>=3.4.0,<4
 
 # Auth & Security
 python-jose[cryptography]==3.3.0
