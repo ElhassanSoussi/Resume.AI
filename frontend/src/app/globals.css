@@ -201,7 +201,9 @@
   }
 
   .glass-panel-lift {
-    @apply border border-white/[0.09] bg-card/50 shadow-2xl shadow-black/45 backdrop-blur-xl transition-[transform, box-shadow, border-color] duration-300;
+    @apply border border-white/[0.09] bg-card/50 shadow-2xl shadow-black/45 backdrop-blur-xl duration-300;
+    transition-property: transform, box-shadow, border-color;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow:
       0 1px 0 0 oklch(1 0 0 / 0.05) inset,
       0 16px 48px -28px rgba(0, 0, 0, 0.55);
@@ -216,15 +218,28 @@
     @apply border border-white/5 bg-white/[0.03] backdrop-blur-md;
   }
 
+  /** Hero headline accent — matches `primary` / CTA blue (not teal gradient) */
+  .text-hero-accent {
+    @apply text-primary;
+    text-shadow:
+      0 0 42px oklch(0.55 0.2 255 / 0.45),
+      0 0 1px oklch(0.78 0.12 255 / 0.95);
+  }
+
+  /** Marketing subcopy: readable on dark mesh (≈ WCAG-friendly vs muted-foreground alone) */
+  .marketing-body {
+    @apply text-pretty text-foreground/80 leading-relaxed;
+  }
+
   .text-gradient-brand {
     @apply bg-gradient-to-r from-[var(--brand-electric)] to-[var(--brand-teal)] bg-clip-text text-transparent;
   }
 
   .mesh-bg {
     background:
-      radial-gradient(ellipse 80% 60% at 20% 10%, oklch(0.45 0.15 255 / 0.35), transparent 55%),
-      radial-gradient(ellipse 70% 50% at 80% 30%, oklch(0.4 0.12 195 / 0.25), transparent 50%),
-      radial-gradient(ellipse 60% 80% at 50% 90%, oklch(0.35 0.08 280 / 0.2), transparent 45%),
+      radial-gradient(ellipse 80% 60% at 20% 10%, oklch(0.45 0.15 255 / 0.38), transparent 55%),
+      radial-gradient(ellipse 70% 50% at 82% 28%, oklch(0.42 0.14 255 / 0.22), transparent 52%),
+      radial-gradient(ellipse 60% 80% at 50% 92%, oklch(0.32 0.08 270 / 0.18), transparent 48%),
       oklch(0.1 0.02 260);
   }
 

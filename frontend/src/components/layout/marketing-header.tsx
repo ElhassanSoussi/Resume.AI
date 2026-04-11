@@ -47,7 +47,7 @@ export function MarketingHeader() {
               key={item.href}
               href={item.href}
               className={cn(
-                "rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground",
+                "rounded-lg px-3 py-2 text-sm font-medium text-foreground/70 transition-colors hover:text-foreground",
                 pathname === item.href && "bg-white/5 text-foreground",
               )}
             >
@@ -60,7 +60,7 @@ export function MarketingHeader() {
           <Button variant="ghost" size="sm" asChild>
             <Link href={AUTH_ROUTES.login}>Log in</Link>
           </Button>
-          <Button size="sm" asChild>
+          <Button size="sm" className="btn-inset rounded-full px-4" asChild>
             <Link href={AUTH_ROUTES.signup}>Get started</Link>
           </Button>
         </div>

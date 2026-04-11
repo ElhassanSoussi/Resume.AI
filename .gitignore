@@ -90,3 +90,8 @@ Thumbs.db
 tmp/
 temp/
 .cache/
+# App-generated exports / uploads
+uploads/
+generated/
+exports/
+*.pdf

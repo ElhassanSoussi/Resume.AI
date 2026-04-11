@@ -1,1 +1,8 @@
-export { ApiError, api, apiFetch, type RequestOptions } from "@/lib/api/client";
+export {
+  ApiError,
+  api,
+  apiFetch,
+  getApiBaseUrl,
+  messageFromApiPayload,
+  type RequestOptions,
+} from "@/lib/api/client";
