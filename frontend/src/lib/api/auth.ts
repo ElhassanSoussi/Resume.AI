@@ -50,6 +50,11 @@ function mapSession(session: Session | null): TokenPair | null {
 
 function throwAuthError(error: AuthError | null): void {
   if (error != null) {
+    if (/invalid api key/i.test(error.message)) {
+      throw new Error(
+        "Invalid Supabase public key. Verify NEXT_PUBLIC_SUPABASE_URL matches the project for NEXT_PUBLIC_SUPABASE_ANON_KEY.",
+      );
+    }
     throw error;
   }
 }

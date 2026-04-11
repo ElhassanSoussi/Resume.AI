@@ -41,7 +41,7 @@ export function LoginForm() {
       let msg: string;
       if (err instanceof TypeError) {
         msg =
-          "Cannot reach Supabase. Check that NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are set.";
+          "Cannot reach Supabase. Check that NEXT_PUBLIC_SUPABASE_URL and your Supabase public key are set.";
       } else {
         msg = err instanceof Error ? err.message : "Could not sign in.";
       }
