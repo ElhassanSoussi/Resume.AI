@@ -6,6 +6,10 @@ import type {
   Skill,
   Summary,
 } from "@/lib/types/resume";
+import {
+  DEFAULT_RESUME_TEMPLATE,
+  normalizeResumeTemplateKey,
+} from "@/lib/resume/constants";
 import type {
   PersonalInfoFormValues,
   ResumeCreateFormValues,
@@ -91,7 +95,7 @@ export function getDefaultFullResumeFormValues(): ResumeFullUpdateFormValues {
 export function getDefaultResumeFormValues(): ResumeCreateFormValues {
   return {
     title: "",
-    template_key: "modern",
+    template_key: DEFAULT_RESUME_TEMPLATE,
     personal_info: {
       first_name: "",
       last_name: "",
@@ -164,7 +168,7 @@ export function resumeReadToFormValues(r: ResumeRead): ResumeFullUpdateFormValue
 
   return {
     title: r.title,
-    template_key: r.template_key,
+    template_key: normalizeResumeTemplateKey(r.template_key),
     status: r.status === "complete" ? "complete" : "draft",
     personal_info: personal
       ? {

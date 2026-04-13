@@ -40,16 +40,12 @@ export function CoverLetterBuilder({ resumes, initial }: Props) {
     return (
       <PageSection
         eyebrow="Cover Letters"
-        title="New Cover Letter"
-        description="You need at least one resume before generating a cover letter."
+        title="Start with a resume"
+        description="A cover letter uses your existing resume as source material, so the workspace needs at least one resume first."
       >
-        <p className="text-sm text-muted-foreground">
-          Go to{" "}
-          <a href="/resumes/new" className="text-primary underline underline-offset-4">
-            New resume
-          </a>{" "}
-          to create your first resume, then come back here.
-        </p>
+        <Button asChild>
+          <a href="/resumes/new">Create a resume first</a>
+        </Button>
       </PageSection>
     );
   }
@@ -96,14 +92,14 @@ export function CoverLetterBuilder({ resumes, initial }: Props) {
     <PageSection
       eyebrow="Cover Letters"
       title={isEditing ? title : "New Cover Letter"}
-      description="AI generates a tailored letter from your resume and the job description."
+      description="Generate a tailored draft from your resume and the role, then refine the final version before you send it."
     >
       <div className="grid gap-6 lg:grid-cols-[1fr_1.4fr]">
         {/* Left: inputs */}
         <div className="space-y-5">
           <Card className="glass-panel">
             <CardHeader>
-              <CardTitle className="text-sm font-semibold">Letter details</CardTitle>
+              <CardTitle className="text-sm font-semibold">Letter brief</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-1.5">
@@ -155,6 +151,9 @@ export function CoverLetterBuilder({ resumes, initial }: Props) {
 
               <div className="space-y-1.5">
                 <Label htmlFor="cl-jd">Job description</Label>
+                <p className="text-xs text-muted-foreground">
+                  Paste enough of the role description for the draft to sound specific and credible.
+                </p>
                 <Textarea
                   id="cl-jd"
                   rows={8}
@@ -175,7 +174,7 @@ export function CoverLetterBuilder({ resumes, initial }: Props) {
                 ) : (
                   <Wand2 className="mr-2 size-4" />
                 )}
-                {generate.isPending ? "Generating…" : "Generate with AI"}
+                {generate.isPending ? "Generating draft…" : "Generate draft"}
               </Button>
             </CardContent>
           </Card>
@@ -186,7 +185,7 @@ export function CoverLetterBuilder({ resumes, initial }: Props) {
           <Card className="glass-panel">
             <CardHeader className="flex flex-row items-center gap-2">
               <FileText className="size-4 text-primary" />
-              <CardTitle className="text-sm font-semibold">Letter body</CardTitle>
+              <CardTitle className="text-sm font-semibold">Draft editor</CardTitle>
               {generate.isPending && (
                 <span className="ml-auto flex items-center gap-1.5 text-xs text-muted-foreground">
                   <Sparkles className="size-3.5 animate-pulse text-primary" />
@@ -199,7 +198,7 @@ export function CoverLetterBuilder({ resumes, initial }: Props) {
                 rows={22}
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
-                placeholder="Your cover letter will appear here after generation — you can edit it freely."
+                placeholder="Your draft appears here after generation. Edit freely before you send it."
                 className="resize-none font-mono text-sm"
               />
             </CardContent>

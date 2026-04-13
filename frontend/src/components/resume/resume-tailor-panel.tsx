@@ -48,7 +48,7 @@ export function ResumeTailorPanel({ resumeId, resumeTitle }: Props) {
     <PageSection
       eyebrow={resumeTitle}
       title="Tailor for a job"
-      description="AI rewrites your resume content to mirror the job description's keywords without fabricating experience."
+      description="AI aligns your wording to the role while keeping your facts intact, then saves the result as a separate version."
     >
       <div className="grid gap-6 lg:grid-cols-2">
         <Card className="glass-panel">
@@ -75,6 +75,9 @@ export function ResumeTailorPanel({ resumeId, resumeTitle }: Props) {
                 placeholder="Paste the full job posting here…"
                 className="resize-none"
               />
+              <p className="text-xs text-muted-foreground">
+                Paste the full posting when possible so the tailored version can mirror the right language without exaggerating your background.
+              </p>
             </div>
             <Button
               className="w-full"
@@ -106,8 +109,7 @@ export function ResumeTailorPanel({ resumeId, resumeTitle }: Props) {
 
             {!tailor.isPending && !result && (
               <p className="text-sm text-muted-foreground">
-                Your tailored version will appear here after processing. It will be saved
-                automatically to your resume&apos;s version history.
+                Your tailored version will appear here after processing. It is saved automatically to version history so your original draft stays untouched.
               </p>
             )}
 

@@ -1,9 +1,16 @@
 /** Mirrors FastAPI `app/schemas/ai.py` for `/api/v1/ai/*`. */
 
+export type ResumeWritingMode =
+  | "balanced"
+  | "concise"
+  | "achievement_focused"
+  | "ats_focused";
+
 export type RewriteSummaryRequest = {
   summary_body: string;
   target_role?: string | null;
   job_description?: string | null;
+  writing_mode?: ResumeWritingMode;
 };
 
 export type RewriteSummaryResponse = {
@@ -18,6 +25,7 @@ export type RewriteExperienceRequest = {
   end_date?: string | null;
   is_current: boolean;
   bullets: string[];
+  writing_mode?: ResumeWritingMode;
 };
 
 export type RewriteExperienceResponse = {
@@ -50,6 +58,7 @@ export type OptimizeResumeRequest = {
   experiences: RewriteExperienceRequest[];
   educations: OptimizeEducationInput[];
   skills: OptimizeSkillCategoryInput[];
+  writing_mode?: ResumeWritingMode;
 };
 
 export type OptimizeResumeResponse = {

@@ -18,7 +18,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useAiResumeMutations } from "@/hooks/use-ai-resume";
 import { applyOptimizeResult } from "@/lib/ai/apply-optimize";
 import { resumeFormToOptimizeRequest } from "@/lib/ai/payloads";
-import { ApiError } from "@/lib/api/client";
+import type { ResumeWritingMode } from "@/lib/types/ai";
 import type { ResumeFullUpdateFormValues } from "@/lib/validation/resume-schema";
 
 export type AiResumeMutations = ReturnType<typeof useAiResumeMutations>;
@@ -27,9 +27,28 @@ type Props = {
   getValues: UseFormGetValues<ResumeFullUpdateFormValues>;
   setValue: UseFormSetValue<ResumeFullUpdateFormValues>;
   ai: AiResumeMutations;
+  writingMode: ResumeWritingMode;
+  onWritingModeChange: (mode: ResumeWritingMode) => void;
 };
 
-export function ResumeAiPanel({ getValues, setValue, ai }: Props) {
+const WRITING_MODE_OPTIONS: Array<{
+  value: ResumeWritingMode;
+  label: string;
+  helper: string;
+}> = [
+  { value: "balanced", label: "Balanced", helper: "Best default for most roles." },
+  { value: "concise", label: "Concise", helper: "Tighter phrasing and faster scanning." },
+  { value: "achievement_focused", label: "Achievement", helper: "Highlights ownership when facts support it." },
+  { value: "ats_focused", label: "ATS", helper: "More direct wording for parser-heavy applications." },
+];
+
+export function ResumeAiPanel({
+  getValues,
+  setValue,
+  ai,
+  writingMode,
+  onWritingModeChange,
+}: Props) {
   const { rewriteSummary, optimizeResume, aiBusy } = ai;
 
   const [summaryOpen, setSummaryOpen] = useState(false);
@@ -54,6 +73,7 @@ export function ResumeAiPanel({ getValues, setValue, ai }: Props) {
         summary_body: body,
         target_role: targetRole.trim() || null,
         job_description: jobDescription.trim() || null,
+        writing_mode: writingMode,
       },
       {
         onSuccess: (res) => {
@@ -68,7 +88,7 @@ export function ResumeAiPanel({ getValues, setValue, ai }: Props) {
     setLocalError(null);
     try {
       const values = getValues();
-      const payload = resumeFormToOptimizeRequest(values);
+      const payload = resumeFormToOptimizeRequest(values, writingMode);
       optimizeResume.mutate(payload, {
         onSuccess: (res) => {
           applyOptimizeResult(res, setValue, getValues);
@@ -86,16 +106,16 @@ export function ResumeAiPanel({ getValues, setValue, ai }: Props) {
 
   const err =
     localError ??
-    (rewriteSummary.error instanceof ApiError ? rewriteSummary.error.message : null) ??
-    (optimizeResume.error instanceof ApiError ? optimizeResume.error.message : null);
+    (rewriteSummary.isError ? "We couldn’t rewrite the summary right now." : null) ??
+    (optimizeResume.isError ? "We couldn’t run optimization right now." : null);
 
   return (
-    <div className="space-y-4 rounded-xl border border-primary/20 bg-gradient-to-br from-primary/5 via-transparent to-muted/30 p-4">
+    <div className="space-y-5 rounded-xl border border-primary/20 bg-gradient-to-br from-primary/5 via-transparent to-muted/30 p-4">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h3 className="font-heading text-sm font-semibold text-foreground">AI optimization</h3>
+          <h3 className="font-heading text-sm font-semibold text-foreground">AI writing assistant</h3>
           <p className="text-xs text-muted-foreground">
-            Rewrites use your facts only. One operation at a time.
+            Your facts stay yours. AI rewrites for clarity, strength, and recruiter readability without inventing new claims.
           </p>
         </div>
         {aiBusy ? (
@@ -111,6 +131,32 @@ export function ResumeAiPanel({ getValues, setValue, ai }: Props) {
           {err}
         </p>
       ) : null}
+
+      <div className="space-y-2">
+        <p className="text-[0.72rem] font-medium uppercase tracking-[0.18em] text-muted-foreground">Writing mode</p>
+        <div className="grid gap-2 lg:grid-cols-4">
+          {WRITING_MODE_OPTIONS.map((option) => {
+            const active = option.value === writingMode;
+            return (
+              <button
+                key={option.value}
+                type="button"
+                disabled={aiBusy}
+                onClick={() => onWritingModeChange(option.value)}
+                className={[
+                  "rounded-2xl border p-3 text-left transition disabled:opacity-50",
+                  active
+                    ? "border-primary/60 bg-primary/10 ring-1 ring-primary/20"
+                    : "border-white/10 bg-card/40 hover:border-white/20 hover:bg-card/60",
+                ].join(" ")}
+              >
+                <p className="font-medium text-foreground">{option.label}</p>
+                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{option.helper}</p>
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
       <div className="flex flex-wrap gap-2">
         <Button
@@ -146,7 +192,7 @@ export function ResumeAiPanel({ getValues, setValue, ai }: Props) {
           <DialogHeader>
             <DialogTitle>Rewrite summary</DialogTitle>
             <DialogDescription>
-              Optional context helps tailor tone. Your original summary is sent as the only source of facts.
+              Optional context helps tailor tone. The rewrite stays anchored to your original facts and selected writing mode.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
@@ -197,8 +243,7 @@ export function ResumeAiPanel({ getValues, setValue, ai }: Props) {
           <DialogHeader>
             <DialogTitle>Optimize entire resume</DialogTitle>
             <DialogDescription>
-              Runs an ATS-oriented pass on summary bullets, experience bullets, and skills. No new facts are
-              invented — review and edit freely after.
+              Rewrites summary, experience bullets, and skills for stronger clarity. No new facts are invented, and you remain in control of the final wording.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -222,8 +267,8 @@ export function ResumeAiPanel({ getValues, setValue, ai }: Props) {
       <Dialog open={atsOpen} onOpenChange={setAtsOpen}>
         <DialogContent className="max-w-lg border-white/10 bg-card/95 backdrop-blur-md">
           <DialogHeader>
-            <DialogTitle>ATS notes</DialogTitle>
-            <DialogDescription>Short guidance from the model — use alongside your own judgment.</DialogDescription>
+            <DialogTitle>Optimization notes</DialogTitle>
+            <DialogDescription>Short guidance from the model, using the same fact-only input you provided.</DialogDescription>
           </DialogHeader>
           <p className="whitespace-pre-wrap rounded-lg border border-white/10 bg-muted/30 p-3 text-sm leading-relaxed">
             {atsNotes}

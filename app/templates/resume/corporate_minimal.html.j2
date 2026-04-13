@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>{{ personal.full_name or resume_title }}</title>
+  <style>
+    @page { size: A4; margin: 14mm; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #ffffff;
+      color: #1d2430;
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      font-size: 10.35pt;
+      line-height: 1.48;
+    }
+    .header {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 220px;
+      gap: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #d9dee7;
+    }
+    h1 {
+      margin: 0;
+      font-size: 24pt;
+      font-weight: 650;
+      letter-spacing: -0.03em;
+      color: #111827;
+    }
+    .role {
+      margin-top: 7px;
+      font-size: 9pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: #425166;
+    }
+    .contact, .links {
+      text-align: right;
+      font-size: 8.8pt;
+      color: #5c6779;
+    }
+    .links { margin-top: 5px; }
+    .links div + div, .contact div + div { margin-top: 2px; }
+    h2 {
+      margin: 20px 0 9px 0;
+      padding-bottom: 4px;
+      border-bottom: 1px solid #d9dee7;
+      font-size: 9.3pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: #273649;
+    }
+    p { margin: 0; }
+    .summary { color: #324152; }
+    .item { margin-bottom: 15px; }
+    .row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: flex-start;
+    }
+    .title {
+      font-size: 10.6pt;
+      font-weight: 700;
+      color: #111827;
+    }
+    .meta {
+      margin-top: 2px;
+      font-size: 9pt;
+      color: #5c6779;
+    }
+    .dates {
+      white-space: nowrap;
+      font-size: 8.8pt;
+      font-weight: 700;
+      color: #4b5563;
+    }
+    ul {
+      margin: 7px 0 0 18px;
+      padding: 0;
+    }
+    li { margin-bottom: 4px; }
+    .skills {
+      display: grid;
+      gap: 8px;
+    }
+    .skill-row strong { color: #111827; }
+    a { color: inherit; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div>
+      <h1>{{ personal.full_name }}</h1>
+      <div class="role">{{ resume_title }}</div>
+    </div>
+    <div>
+      {% if personal.contact_items %}
+      <div class="contact">
+        {% for item in personal.contact_items %}<div>{{ item }}</div>{% endfor %}
+      </div>
+      {% endif %}
+      {% if personal.links %}
+      <div class="links">
+        {% for link in personal.links %}<div>{{ link.label }} · {{ link.display }}</div>{% endfor %}
+      </div>
+      {% endif %}
+    </div>
+  </header>
+
+  {% if summary %}
+  <section>
+    <h2>Professional Summary</h2>
+    <p class="summary">{{ summary }}</p>
+  </section>
+  {% endif %}
+
+  {% if experiences %}
+  <section>
+    <h2>Experience</h2>
+    {% for job in experiences %}
+    <div class="item">
+      <div class="row">
+        <div>
+          <div class="title">{{ job.job_title }}</div>
+          <div class="meta">{{ job.company }}{% if job.location %} · {{ job.location }}{% endif %}</div>
+        </div>
+        <div class="dates">{{ job.date_range }}</div>
+      </div>
+      {% if job.bullets %}
+      <ul>
+        {% for bullet in job.bullets %}<li>{{ bullet }}</li>{% endfor %}
+      </ul>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </section>
+  {% endif %}
+
+  {% if educations %}
+  <section>
+    <h2>Education</h2>
+    {% for edu in educations %}
+    <div class="item">
+      <div class="row">
+        <div>
+          <div class="title">{{ edu.degree }}{% if edu.field_of_study %}, {{ edu.field_of_study }}{% endif %}</div>
+          <div class="meta">{{ edu.institution }}{% if edu.location %} · {{ edu.location }}{% endif %}</div>
+          {% if edu.gpa %}<div class="meta">GPA {{ edu.gpa }}</div>{% endif %}
+        </div>
+        <div class="dates">{{ edu.date_range }}</div>
+      </div>
+      {% if edu.description %}<p class="summary" style="margin-top:6px;">{{ edu.description }}</p>{% endif %}
+    </div>
+    {% endfor %}
+  </section>
+  {% endif %}
+
+  {% if skills %}
+  <section>
+    <h2>Skills</h2>
+    <div class="skills">
+      {% for skill in skills %}
+      <div class="skill-row"><strong>{{ skill.category }}:</strong> {{ skill.items | join(' · ') }}</div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+</body>
+</html>

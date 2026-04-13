@@ -15,12 +15,16 @@ import { Separator } from "@/components/ui/separator";
 import { ApiTokenCallout } from "@/components/system/api-token-callout";
 import { useCreateResume } from "@/hooks/use-resumes";
 import { APP_ROUTES } from "@/lib/auth/routes";
-import { RESUME_TEMPLATE_OPTIONS } from "@/lib/resume/constants";
+import {
+  DEFAULT_RESUME_TEMPLATE,
+  normalizeResumeTemplateKey,
+} from "@/lib/resume/constants";
 import { getDefaultResumeFormValues, toResumeCreateBody } from "@/lib/resume/mappers";
 import { WIZARD_STEP_COUNT, validateWizardStep } from "@/lib/resume/wizard-steps";
 import { cn } from "@/lib/utils";
 import { resumeCreateSchema, type ResumeCreateFormValues } from "@/lib/validation/resume-schema";
 import { ApiError } from "@/lib/api/client";
+import { TemplatePicker } from "@/components/resume/template-picker";
 
 const STEP_TITLES = [
   "Title & template",
@@ -157,7 +161,6 @@ export function ResumeWizard() {
     });
   });
 
-  const title = watch("title");
   const templateKey = watch("template_key");
 
   return (
@@ -186,7 +189,7 @@ export function ResumeWizard() {
           ) : null}
           {createMut.isError && createMut.error instanceof ApiError ? (
             <p className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-              {createMut.error.message}
+              We couldn’t create the resume right now. Please review the details and try again.
             </p>
           ) : null}
         </CardHeader>
@@ -195,27 +198,17 @@ export function ResumeWizard() {
             <div className="space-y-4">
               <TextField control={control} name="title" label="Resume title" placeholder="e.g. Product Designer — 2026" />
               <div className="space-y-2">
-                <Label htmlFor="template_key">Template</Label>
-                <Controller
-                  control={control}
-                  name="template_key"
-                  render={({ field }) => (
-                    <select
-                      id="template_key"
-                      className={cn(
-                        "h-8 w-full max-w-md rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none",
-                        "focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
-                        "dark:bg-input/30",
-                      )}
-                      {...field}
-                    >
-                      {RESUME_TEMPLATE_OPTIONS.map((opt) => (
-                        <option key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </option>
-                      ))}
-                    </select>
-                  )}
+                <Label>Designed template</Label>
+                <p className="text-sm text-muted-foreground">
+                  Pick the premium layout you want for preview and designed PDF export. ATS Export stays separate and
+                  always uses ATS Classic.
+                </p>
+                <TemplatePicker
+                  selected={normalizeResumeTemplateKey(templateKey || DEFAULT_RESUME_TEMPLATE)}
+                  variant="editor"
+                  onSelect={(value) => {
+                    form.setValue("template_key", value, { shouldDirty: true, shouldTouch: true });
+                  }}
                 />
               </div>
             </div>

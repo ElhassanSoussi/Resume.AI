@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>{{ personal.full_name or resume_title }}</title>
+  <style>
+    @page { size: A4; margin: 12mm; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #ffffff;
+      color: #121212;
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      font-size: 9.9pt;
+      line-height: 1.35;
+    }
+    h1 {
+      margin: 0;
+      font-size: 22pt;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: #111111;
+    }
+    .role {
+      margin-top: 4px;
+      font-size: 8.7pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: #374151;
+    }
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+    }
+    .contact {
+      text-align: right;
+      font-size: 8.4pt;
+      color: #4b5563;
+      line-height: 1.45;
+    }
+    .contact div + div { margin-top: 2px; }
+    h2 {
+      margin: 14px 0 7px 0;
+      padding-bottom: 3px;
+      border-bottom: 1px solid #111111;
+      font-size: 8.8pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.22em;
+      color: #111111;
+    }
+    p { margin: 0; }
+    .summary { color: #222222; }
+    .item { margin-bottom: 10px; }
+    .row {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: flex-start;
+    }
+    .title {
+      font-size: 10pt;
+      font-weight: 700;
+      color: #111111;
+    }
+    .meta, .dates {
+      font-size: 8.4pt;
+      color: #4b5563;
+    }
+    .dates {
+      white-space: nowrap;
+      font-weight: 700;
+    }
+    ul {
+      margin: 4px 0 0 15px;
+      padding: 0;
+    }
+    li { margin-bottom: 2px; }
+    .skill-grid {
+      display: grid;
+      grid-template-columns: 120px minmax(0, 1fr);
+      gap: 4px 10px;
+      margin-top: 6px;
+    }
+    .skill-label {
+      font-size: 8.5pt;
+      font-weight: 700;
+      color: #111111;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+    .skill-value {
+      font-size: 8.8pt;
+      color: #374151;
+    }
+    a { color: inherit; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-row">
+      <div>
+        <h1>{{ personal.full_name }}</h1>
+        <div class="role">{{ resume_title }}</div>
+      </div>
+      <div class="contact">
+        {% for item in personal.contact_items %}<div>{{ item }}</div>{% endfor %}
+        {% for link in personal.links %}<div>{{ link.label }} {{ link.display }}</div>{% endfor %}
+      </div>
+    </div>
+  </header>
+
+  {% if summary %}
+  <section>
+    <h2>Summary</h2>
+    <p class="summary">{{ summary }}</p>
+  </section>
+  {% endif %}
+
+  {% if experiences %}
+  <section>
+    <h2>Experience</h2>
+    {% for job in experiences %}
+    <div class="item">
+      <div class="row">
+        <div>
+          <div class="title">{{ job.job_title }}</div>
+          <div class="meta">{{ job.company }}{% if job.location %} · {{ job.location }}{% endif %}</div>
+        </div>
+        <div class="dates">{{ job.date_range }}</div>
+      </div>
+      {% if job.bullets %}
+      <ul>
+        {% for bullet in job.bullets %}<li>{{ bullet }}</li>{% endfor %}
+      </ul>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </section>
+  {% endif %}
+
+  {% if educations %}
+  <section>
+    <h2>Education</h2>
+    {% for edu in educations %}
+    <div class="item">
+      <div class="row">
+        <div>
+          <div class="title">{{ edu.degree }}{% if edu.field_of_study %}, {{ edu.field_of_study }}{% endif %}</div>
+          <div class="meta">{{ edu.institution }}{% if edu.location %} · {{ edu.location }}{% endif %}</div>
+        </div>
+        <div class="dates">{{ edu.date_range }}</div>
+      </div>
+      {% if edu.description %}<p class="summary" style="margin-top:4px;">{{ edu.description }}</p>{% endif %}
+    </div>
+    {% endfor %}
+  </section>
+  {% endif %}
+
+  {% if skills %}
+  <section>
+    <h2>Skills</h2>
+    <div class="skill-grid">
+      {% for skill in skills %}
+      <div class="skill-label">{{ skill.category }}</div>
+      <div class="skill-value">{{ skill.items | join(', ') }}</div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+</body>
+</html>

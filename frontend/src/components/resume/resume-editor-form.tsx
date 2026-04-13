@@ -9,6 +9,7 @@ import { Loader2, Plus, Sparkles, Trash2 } from "lucide-react";
 import { CheckboxField, TextAreaField, TextField } from "@/components/forms/form-fields";
 import { ApiTokenCallout } from "@/components/system/api-token-callout";
 import { ResumeAiPanel } from "@/components/resume/resume-ai-panel";
+import { ResumeCoachPanel } from "@/components/resume/resume-coach-panel";
 import { ResumeExportSection } from "@/components/resume/resume-export-section";
 import { TemplatePicker } from "@/components/resume/template-picker";
 import { Button } from "@/components/ui/button";
@@ -21,7 +22,11 @@ import { useResume, useUpdateResumeFull } from "@/hooks/use-resumes";
 import { experienceRowToRewriteRequest } from "@/lib/ai/payloads";
 import { ApiError } from "@/lib/api/client";
 import { APP_ROUTES } from "@/lib/auth/routes";
-import { normalizePreviewTemplateKey } from "@/lib/resume/constants";
+import type { ResumeWritingMode } from "@/lib/types/ai";
+import {
+  DEFAULT_RESUME_TEMPLATE,
+  normalizeResumeTemplateKey,
+} from "@/lib/resume/constants";
 import { resumeCompletionPercent } from "@/lib/resume/completion";
 import {
   getDefaultFullResumeFormValues,
@@ -58,6 +63,7 @@ function BulletsEditor({
               "focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
               "dark:bg-input/30",
             )}
+            placeholder={"Led cross-functional initiative that improved...\nBuilt or launched...\nStreamlined or reduced..."}
             value={Array.isArray(field.value) ? field.value.join("\n") : ""}
             onChange={(e) => field.onChange(e.target.value.split("\n"))}
             aria-invalid={fieldState.invalid}
@@ -92,6 +98,7 @@ function SkillItemsEditor({
               "focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
               "dark:bg-input/30",
             )}
+            placeholder={"SQL\nPython\nUser research\nRoadmapping"}
             value={Array.isArray(field.value) ? field.value.join("\n") : ""}
             onChange={(e) => field.onChange(e.target.value.split("\n"))}
             aria-invalid={fieldState.invalid}
@@ -106,11 +113,12 @@ function SkillItemsEditor({
 }
 
 export function ResumeEditorForm({ resumeId }: { resumeId: string }) {
-  const { data, isLoading, isError, error } = useResume(resumeId);
+  const { data, isLoading, isError } = useResume(resumeId);
   const updateMut = useUpdateResumeFull(resumeId);
   const ai = useAiResumeMutations();
   const [rewritingExpIndex, setRewritingExpIndex] = useState<number | null>(null);
   const [expAiError, setExpAiError] = useState<string | null>(null);
+  const [writingMode, setWritingMode] = useState<ResumeWritingMode>("balanced");
   const hydrated = useRef(false);
 
   const form = useForm<ResumeFullUpdateFormValues>({
@@ -162,7 +170,7 @@ export function ResumeEditorForm({ resumeId }: { resumeId: string }) {
       setExpAiError(null);
       try {
         const row = getValues(`experiences.${index}`);
-        const payload = experienceRowToRewriteRequest(row);
+        const payload = experienceRowToRewriteRequest(row, writingMode);
         setRewritingExpIndex(index);
         ai.rewriteExperience.mutate(payload, {
           onSuccess: (res) => {
@@ -177,7 +185,7 @@ export function ResumeEditorForm({ resumeId }: { resumeId: string }) {
         setExpAiError(e instanceof Error ? e.message : "Could not rewrite this role.");
       }
     },
-    [ai.rewriteExperience, getValues, setValue],
+    [ai.rewriteExperience, getValues, setValue, writingMode],
   );
 
   if (isLoading) {
@@ -190,10 +198,9 @@ export function ResumeEditorForm({ resumeId }: { resumeId: string }) {
   }
 
   if (isError) {
-    const msg = error instanceof ApiError ? error.message : "Could not load resume.";
     return (
       <div className="rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-6 text-sm text-destructive">
-        {msg}
+        We couldn’t load this resume right now. Refresh the page and try again.
       </div>
     );
   }
@@ -231,18 +238,29 @@ export function ResumeEditorForm({ resumeId }: { resumeId: string }) {
 
         {updateMut.isError && updateMut.error instanceof ApiError ? (
           <p className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-            {updateMut.error.message}
+            We couldn’t save your latest edits. Your current draft is still in the editor, so please try again.
           </p>
         ) : null}
 
-        <ResumeAiPanel getValues={getValues} setValue={setValue} ai={ai} />
+        <ResumeAiPanel
+          getValues={getValues}
+          setValue={setValue}
+          ai={ai}
+          writingMode={writingMode}
+          onWritingModeChange={setWritingMode}
+        />
 
         <Suspense fallback={<Skeleton className="h-28 w-full rounded-xl" />}>
           <ResumeExportSection
             resumeId={resumeId}
-            templateKey={templateKey || data.template_key || "modern"}
+            templateKey={normalizeResumeTemplateKey(templateKey || data.template_key || DEFAULT_RESUME_TEMPLATE)}
           />
         </Suspense>
+
+        <ResumeCoachPanel
+          resumeId={resumeId}
+          values={(watched as ResumeFullUpdateFormValues) ?? getDefaultFullResumeFormValues()}
+        />
 
         <div className="space-y-2">
           <TextField control={control} name="title" label="Resume title" />
@@ -271,11 +289,14 @@ export function ResumeEditorForm({ resumeId }: { resumeId: string }) {
           </div>
           <div className="space-y-2 pt-2">
             <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              Layout template
+              Designed template
             </Label>
+            <p className="text-sm text-muted-foreground">
+              This controls your live preview and Designed Export. ATS Export always uses ATS Classic.
+            </p>
             <TemplatePicker
               variant="editor"
-              selected={normalizePreviewTemplateKey(templateKey)}
+              selected={normalizeResumeTemplateKey(templateKey)}
               disabled={ai.aiBusy}
               onSelect={(value) => {
                 setValue("template_key", value, { shouldDirty: true, shouldTouch: true });
@@ -288,6 +309,9 @@ export function ResumeEditorForm({ resumeId }: { resumeId: string }) {
 
         <section className="space-y-4">
           <h3 className="font-heading text-sm font-semibold">Contact</h3>
+          <p className="text-sm text-muted-foreground">
+            Keep this restrained and factual. Recruiters should find the essentials immediately without the header feeling crowded.
+          </p>
           <div className="grid gap-4 sm:grid-cols-2">
             <TextField control={control} name="personal_info.first_name" label="First name" />
             <TextField control={control} name="personal_info.last_name" label="Last name" />
@@ -304,13 +328,25 @@ export function ResumeEditorForm({ resumeId }: { resumeId: string }) {
 
         <section className="space-y-3">
           <h3 className="font-heading text-sm font-semibold">Summary</h3>
-          <TextAreaField control={control} name="summary.body" label="Professional summary" rows={8} />
+          <p className="text-sm text-muted-foreground">
+            Aim for 2-4 sentences covering your level, focus, and strengths. Avoid generic self-descriptions and keep the tone recruiter-ready.
+          </p>
+          <TextAreaField
+            control={control}
+            name="summary.body"
+            label="Professional summary"
+            rows={8}
+            placeholder="Product designer with 6+ years leading end-to-end experience design across B2B SaaS platforms, translating complex workflows into clear, measurable user experiences..."
+          />
         </section>
 
         <Separator />
 
         <section className="space-y-4">
           <h3 className="font-heading text-sm font-semibold">Experience</h3>
+          <p className="text-sm text-muted-foreground">
+            Lead with ownership, scope, and outcomes when facts support them. Strong roles usually have 2-4 high-signal bullets.
+          </p>
           {expAiError ? (
             <p className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive">
               {expAiError}
@@ -318,7 +354,7 @@ export function ResumeEditorForm({ resumeId }: { resumeId: string }) {
           ) : null}
           {ai.rewriteExperience.error instanceof ApiError ? (
             <p className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive">
-              {ai.rewriteExperience.error.message}
+              We couldn’t rewrite this role right now. Please try again.
             </p>
           ) : null}
           {expArray.fields.map((f, index) => (
@@ -396,6 +432,9 @@ export function ResumeEditorForm({ resumeId }: { resumeId: string }) {
 
         <section className="space-y-4">
           <h3 className="font-heading text-sm font-semibold">Education</h3>
+          <p className="text-sm text-muted-foreground">
+            Keep this concise. Early-career resumes can lean on coursework, honors, or academic context more than senior resumes do.
+          </p>
           {eduArray.fields.map((f, index) => (
             <div key={f.id} className="space-y-4 rounded-xl border border-white/10 p-4">
               <div className="flex items-center justify-between gap-2">
@@ -424,6 +463,7 @@ export function ResumeEditorForm({ resumeId }: { resumeId: string }) {
                 name={`educations.${index}.description`}
                 label="Notes (optional)"
                 rows={3}
+                placeholder="Relevant coursework, honors, thesis focus, leadership, or academic projects."
               />
             </div>
           ))}
@@ -453,6 +493,9 @@ export function ResumeEditorForm({ resumeId }: { resumeId: string }) {
 
         <section className="space-y-4">
           <h3 className="font-heading text-sm font-semibold">Skills</h3>
+          <p className="text-sm text-muted-foreground">
+            Group skills into clear categories rather than one long list. Good labels help both recruiters and ATS systems scan faster.
+          </p>
           {skillArray.fields.map((f, index) => (
             <div key={f.id} className="space-y-4 rounded-xl border border-white/10 p-4">
               <div className="flex items-center justify-between gap-2">

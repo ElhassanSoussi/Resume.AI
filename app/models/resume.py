@@ -19,7 +19,7 @@ class Resume(BaseModel):
         index=True,
     )
     title: Mapped[str] = mapped_column(String(255), nullable=False)
-    template_key: Mapped[str] = mapped_column(String(100), default="modern", nullable=False)
+    template_key: Mapped[str] = mapped_column(String(100), default="modern_professional", nullable=False)
     status: Mapped[str] = mapped_column(String(50), default="draft", nullable=False)
 
     owner: Mapped["User"] = relationship(back_populates="resumes")  # noqa: F821

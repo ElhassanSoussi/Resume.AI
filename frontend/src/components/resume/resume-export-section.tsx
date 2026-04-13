@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Download, FileDown, Loader2, Lock, Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { ExportModePicker } from "@/components/resume/export-mode-picker";
 import {
   Dialog,
   DialogContent,
@@ -24,6 +25,11 @@ import {
 } from "@/hooks/use-billing";
 import { ApiError } from "@/lib/api/client";
 import { getAppOrigin } from "@/lib/app-url";
+import {
+  DEFAULT_EXPORT_MODE,
+  getResumeTemplateMeta,
+  type ResumeExportMode,
+} from "@/lib/resume/constants";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -38,6 +44,7 @@ export function ResumeExportSection({ resumeId, templateKey }: Props) {
   const paymentParam = searchParams.get("payment");
 
   const [unlockOpen, setUnlockOpen] = useState(false);
+  const [exportMode, setExportMode] = useState<ResumeExportMode>(DEFAULT_EXPORT_MODE);
   const successToastSent = useRef(false);
   const cancelToastSent = useRef(false);
 
@@ -51,6 +58,11 @@ export function ResumeExportSection({ resumeId, templateKey }: Props) {
 
   const checkoutMut = useCreateCheckoutSession();
   const genMut = useGeneratePdf(resumeId);
+  const busy = checkoutMut.isPending || genMut.isPending;
+  const paymentPending =
+    payStatus?.status === "pending" || payStatus?.status === "processing";
+  const checkoutBlocked = busy || paymentPending;
+  const designedTemplate = getResumeTemplateMeta(templateKey);
 
   useEffect(() => {
     if (paymentParam === "success") {
@@ -89,6 +101,12 @@ export function ResumeExportSection({ resumeId, templateKey }: Props) {
   }, [paymentParam, pathname, router]);
 
   const startCheckout = () => {
+    if (paymentPending) {
+      toast.message("Payment still processing", {
+        description: "Please wait for Stripe confirmation before starting another checkout.",
+      });
+      return;
+    }
     const origin = getAppOrigin();
     if (!origin) {
       toast.error("Missing app URL", { description: "Set NEXT_PUBLIC_APP_URL or open the app in a browser." });
@@ -104,7 +122,11 @@ export function ResumeExportSection({ resumeId, templateKey }: Props) {
       {
         onError: (e) => {
           const msg = e instanceof ApiError ? e.message : "Could not start checkout.";
-          toast.error("Checkout failed", { description: msg });
+          const title =
+            e instanceof ApiError && e.status === 503
+              ? "Payments unavailable"
+              : "Checkout failed";
+          toast.error(title, { description: msg });
         },
       },
     );
@@ -112,7 +134,10 @@ export function ResumeExportSection({ resumeId, templateKey }: Props) {
 
   const runGenerate = () => {
     genMut.mutate(
-      { template_key: templateKey },
+      {
+        template_key: exportMode === "designed" ? templateKey : null,
+        export_mode: exportMode,
+      },
       {
         onSuccess: (meta) => {
           toast.success("PDF ready", { description: meta.suggested_filename });
@@ -136,10 +161,6 @@ export function ResumeExportSection({ resumeId, templateKey }: Props) {
     }
     window.open(url, "_blank", "noopener,noreferrer");
   };
-
-  const busy = checkoutMut.isPending || genMut.isPending;
-  const paymentPending =
-    payStatus?.status === "pending" || payStatus?.status === "processing";
 
   if (payLoading) {
     return (
@@ -169,7 +190,7 @@ export function ResumeExportSection({ resumeId, templateKey }: Props) {
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(120,120,120,0.12),_transparent_55%)]" />
         ) : null}
         <div className="relative flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div className="space-y-1">
+          <div className="space-y-3">
             <div className="flex items-center gap-2">
               {!paid ? (
                 <Lock className="size-4 text-muted-foreground" aria-hidden />
@@ -190,8 +211,28 @@ export function ResumeExportSection({ resumeId, templateKey }: Props) {
             <p className="max-w-xl text-sm leading-relaxed text-muted-foreground">
               {paid
                 ? "Print-ready export from your current draft. Regenerate anytime after edits."
-                : "One-time unlock for this résumé: generate and download from your chosen template."}
+                : "One-time unlock for this résumé: generate ATS-safe or designed white-paper exports."}
             </p>
+            <div className="max-w-2xl space-y-3">
+              <div>
+                <p className="text-[0.72rem] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                  Export mode
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  ATS Export uses ATS Classic for the safest parsing. Designed Export uses your selected template with
+                  refined spacing on white paper.
+                </p>
+                <p className="mt-1 text-xs uppercase tracking-[0.16em] text-foreground/70">
+                  Designed template: {designedTemplate.label}
+                </p>
+              </div>
+              <ExportModePicker
+                selected={exportMode}
+                onSelect={setExportMode}
+                disabled={busy}
+                compact
+              />
+            </div>
             {!paid && paymentPending ? (
               <p className="text-xs text-amber-200/90">
                 Payment processing… This page will update when Stripe confirms your checkout.
@@ -205,14 +246,14 @@ export function ResumeExportSection({ resumeId, templateKey }: Props) {
                 <Button
                   type="button"
                   variant="default"
-                  disabled={busy}
+                  disabled={checkoutBlocked}
                   onClick={() => setUnlockOpen(true)}
                   className="btn-inset min-w-[160px]"
                 >
-                  {checkoutMut.isPending ? (
+                  {checkoutMut.isPending || paymentPending ? (
                     <>
                       <Loader2 className="mr-2 size-4 animate-spin" />
-                      Redirecting…
+                      {paymentPending ? "Awaiting payment…" : "Redirecting…"}
                     </>
                   ) : (
                     <>
@@ -238,7 +279,7 @@ export function ResumeExportSection({ resumeId, templateKey }: Props) {
                   ) : (
                     <>
                       <Sparkles className="mr-2 size-4" />
-                      Generate PDF
+                      {exportMode === "ats" ? "Generate ATS PDF" : "Generate Designed PDF"}
                     </>
                   )}
                 </Button>
@@ -270,8 +311,8 @@ export function ResumeExportSection({ resumeId, templateKey }: Props) {
           <DialogHeader>
             <DialogTitle>Unlock PDF export</DialogTitle>
             <DialogDescription>
-              Checkout happens on Stripe. When it completes, return here to generate a print-ready file with your
-              selected template.
+              Checkout happens on Stripe. When it completes, return here to generate either an ATS-safe export or a
+              designed recruiter-ready PDF on white paper.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2 sm:justify-end">
@@ -284,12 +325,12 @@ export function ResumeExportSection({ resumeId, templateKey }: Props) {
                 setUnlockOpen(false);
                 startCheckout();
               }}
-              disabled={busy}
+              disabled={checkoutBlocked}
             >
-              {checkoutMut.isPending ? (
+              {checkoutMut.isPending || paymentPending ? (
                 <>
                   <Loader2 className="mr-2 size-4 animate-spin" />
-                  Opening Stripe…
+                  {paymentPending ? "Awaiting payment…" : "Opening Stripe…"}
                 </>
               ) : (
                 "Continue to checkout"

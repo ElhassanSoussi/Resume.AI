@@ -36,8 +36,8 @@ export function ApiTokenCallout() {
       className="block rounded-xl border border-amber-500/25 bg-amber-500/[0.07] px-4 py-3 text-sm leading-relaxed text-amber-100/95"
     >
       <p>
-        <span className="font-medium text-amber-50">Authentication required.</span>{" "}
-        Sign in with your Supabase-backed account so API calls include a Bearer token.
+        <span className="font-medium text-amber-50">Sign in to save your work.</span>{" "}
+        Protected workspace actions need an active account session before they can load or save reliably.
       </p>
     </aside>
   );

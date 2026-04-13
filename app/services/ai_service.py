@@ -48,12 +48,14 @@ class AIService:
         summary_body: str,
         target_role: str | None,
         job_description: str | None,
+        writing_mode: str,
     ) -> RewriteSummaryResponse:
-        system = prompt_builders.system_rewrite_summary()
+        system = prompt_builders.system_rewrite_summary(writing_mode)
         user = prompt_builders.user_rewrite_summary(
             summary_body=summary_body,
             target_role=target_role,
             job_description=job_description,
+            writing_mode=writing_mode,
         )
         raw = await self._complete_and_parse(
             system=system,
@@ -70,9 +72,9 @@ class AIService:
         return RewriteSummaryResponse(rewritten_summary=validated.rewritten_summary)
 
     async def rewrite_experience(self, experience: RewriteExperienceRequest) -> RewriteExperienceResponse:
-        system = prompt_builders.system_rewrite_experience()
+        system = prompt_builders.system_rewrite_experience(experience.writing_mode)
         exp_dict = _experience_to_dict(experience)
-        user = prompt_builders.user_rewrite_experience(exp_dict)
+        user = prompt_builders.user_rewrite_experience(exp_dict, writing_mode=experience.writing_mode)
         raw = await self._complete_and_parse(
             system=system,
             user=user,
@@ -88,9 +90,9 @@ class AIService:
         return RewriteExperienceResponse(bullets=validated.bullets)
 
     async def optimize_resume(self, payload: OptimizeResumeRequest) -> OptimizeResumeResponse:
-        system = prompt_builders.system_optimize_resume()
+        system = prompt_builders.system_optimize_resume(payload.writing_mode)
         snapshot = _optimize_request_to_snapshot(payload)
-        user = prompt_builders.user_optimize_resume(snapshot)
+        user = prompt_builders.user_optimize_resume(snapshot, writing_mode=payload.writing_mode)
         raw = await self._complete_and_parse(
             system=system,
             user=user,

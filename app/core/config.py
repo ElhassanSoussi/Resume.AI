@@ -19,6 +19,12 @@ def _is_placeholder(value: str) -> bool:
     }
 
 
+def _is_stripe_placeholder(value: str, *, exact_placeholders: set[str]) -> bool:
+    normalized = value.strip()
+    lowered = normalized.lower()
+    return lowered == "" or "..." in normalized or lowered in exact_placeholders
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=str(BASE_DIR / ".env"),
@@ -44,6 +50,7 @@ class Settings(BaseSettings):
     # ── Database ─────────────────────────────────────────
     DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/resumeforge"
     DATABASE_ECHO: bool = False
+    AUTO_CREATE_SCHEMA: bool = True
 
     # ── Supabase ─────────────────────────────────────────
     SUPABASE_URL: str = ""
@@ -134,6 +141,47 @@ class Settings(BaseSettings):
     @property
     def ai_configured(self) -> bool:
         return bool(self.OPENAI_API_KEY.strip())
+
+    @property
+    def stripe_secret_key_configured(self) -> bool:
+        return not _is_stripe_placeholder(
+            self.STRIPE_SECRET_KEY,
+            exact_placeholders={"sk_test_", "sk_live_"},
+        )
+
+    @property
+    def stripe_price_configured(self) -> bool:
+        return not _is_stripe_placeholder(
+            self.STRIPE_PRICE_ID_SINGLE_EXPORT,
+            exact_placeholders={"price_"},
+        )
+
+    @property
+    def stripe_webhook_configured(self) -> bool:
+        return not _is_stripe_placeholder(
+            self.STRIPE_WEBHOOK_SECRET,
+            exact_placeholders={"whsec_"},
+        )
+
+    @property
+    def stripe_checkout_config_errors(self) -> list[str]:
+        errors: list[str] = []
+        if not self.stripe_secret_key_configured:
+            errors.append("STRIPE_SECRET_KEY")
+        if not self.stripe_price_configured:
+            errors.append("STRIPE_PRICE_ID_SINGLE_EXPORT")
+        return errors
+
+    @property
+    def stripe_webhook_config_errors(self) -> list[str]:
+        errors: list[str] = []
+        if not self.stripe_webhook_configured:
+            errors.append("STRIPE_WEBHOOK_SECRET")
+        return errors
+
+    @property
+    def stripe_configured(self) -> bool:
+        return not self.stripe_checkout_config_errors
 
 
 settings = Settings()

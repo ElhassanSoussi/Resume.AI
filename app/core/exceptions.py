@@ -81,11 +81,13 @@ async def validation_exception_handler(
 
 
 async def generic_exception_handler(_request: Request, exc: Exception) -> JSONResponse:
-    from app.core.config import settings
+    from app.core.logging import get_logger
 
-    detail = "An unexpected error occurred."
-    if settings.DEBUG:
-        detail = f"{detail} ({type(exc).__name__}: {exc!s})"
+    get_logger(__name__).exception(
+        "app.unhandled_exception",
+        error_type=type(exc).__name__,
+    )
+    detail = "Something went wrong. Please refresh and try again."
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content={"detail": detail},

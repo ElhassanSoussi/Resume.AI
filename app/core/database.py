@@ -4,12 +4,16 @@ from collections.abc import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
+    AsyncEngine,
     async_sessionmaker,
     create_async_engine,
 )
 from sqlalchemy.orm import DeclarativeBase
 
 from app.core.config import settings
+from app.core.logging import get_logger
+
+logger = get_logger(__name__)
 
 engine = create_async_engine(
     settings.DATABASE_URL,
@@ -38,3 +42,13 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
         except Exception:
             await session.rollback()
             raise
+
+
+async def ensure_database_schema(engine_override: AsyncEngine | None = None) -> None:
+    """Create missing tables from ORM metadata without altering existing ones."""
+    import app.models  # noqa: F401  # ensure model metadata is imported
+
+    target_engine = engine_override or engine
+    async with target_engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    logger.info("database.schema_ready")

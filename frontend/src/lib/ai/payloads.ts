@@ -1,6 +1,7 @@
 import type {
   OptimizeEducationInput,
   OptimizeResumeRequest,
+  ResumeWritingMode,
   OptimizeSkillCategoryInput,
   RewriteExperienceRequest,
 } from "@/lib/types/ai";
@@ -19,6 +20,7 @@ function isoDate(s: string | undefined): string | null {
 
 export function experienceRowToRewriteRequest(
   row: ResumeFullUpdateFormValues["experiences"][number],
+  writingMode: ResumeWritingMode = "balanced",
 ): RewriteExperienceRequest {
   const start = isoDate(row.start_date);
   if (!start) {
@@ -33,6 +35,7 @@ export function experienceRowToRewriteRequest(
     end_date: row.is_current ? null : endRaw,
     is_current: row.is_current,
     bullets: cleanBullets(row.bullets),
+    writing_mode: writingMode,
   };
 }
 
@@ -57,6 +60,7 @@ function skillToOptimizeInput(
 
 export function resumeFormToOptimizeRequest(
   values: ResumeFullUpdateFormValues,
+  writingMode: ResumeWritingMode = "balanced",
 ): OptimizeResumeRequest {
   const p = values.personal_info;
   const hasPersonal =
@@ -78,8 +82,9 @@ export function resumeFormToOptimizeRequest(
       }
       : undefined,
     summary_body: summaryBody && summaryBody.length > 0 ? summaryBody : null,
-    experiences: values.experiences.map(experienceRowToRewriteRequest),
+    experiences: values.experiences.map((row) => experienceRowToRewriteRequest(row, writingMode)),
     educations: values.educations.map(educationToOptimizeInput),
     skills: values.skills.map(skillToOptimizeInput),
+    writing_mode: writingMode,
   };
 }

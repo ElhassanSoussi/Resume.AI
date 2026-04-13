@@ -6,6 +6,7 @@ import * as exportApi from "@/lib/api/exports";
 import * as paymentApi from "@/lib/api/payments";
 import { ApiError } from "@/lib/api/client";
 import { queryKeys } from "@/lib/api/query-keys";
+import type { ResumeExportMode } from "@/lib/resume/constants";
 import type { CreateCheckoutSessionRequest } from "@/lib/types/billing";
 
 export const PRODUCT_SINGLE_PDF_EXPORT = "single_pdf_export";
@@ -50,7 +51,7 @@ export function useCreateCheckoutSession() {
 export function useGeneratePdf(resumeId: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (body?: { template_key?: string | null }) =>
+    mutationFn: (body?: { template_key?: string | null; export_mode?: ResumeExportMode | null }) =>
       exportApi.generateResumePdf(resumeId, body),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: queryKeys.exports.all });

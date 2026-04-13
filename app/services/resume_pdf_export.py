@@ -12,7 +12,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.exceptions import AppException, NotFoundException
 from app.core.config import settings
 from app.core.logging import get_logger
-from app.export.constants import TEMPLATE_MODERN_SIDEBAR, resolve_template_key
+from app.export.constants import (
+    EXPORT_MODE_DESIGNED,
+    TEMPLATE_MODERN_PROFESSIONAL,
+    resolve_export_mode,
+    resolve_export_template_key,
+)
 from app.export.renderers import TEMPLATES_DIR, render_resume_html
 from app.export.resume_context import resume_to_template_context
 from app.models.resume_export import ResumeExport
@@ -29,7 +34,6 @@ from app.services.supabase_export_store import (
 from app.services.supabase_resume_reader import fetch_resume_detail
 from app.services.supabase_billing_mirror import sync_resume_export
 from app.storage import get_storage_backend
-from app.storage.local import LocalFilesystemStorage
 
 logger = get_logger(__name__)
 
@@ -92,6 +96,7 @@ class ResumePdfExportService:
         resume_id: uuid.UUID,
         *,
         template_key: str | None = None,
+        export_mode: str | None = None,
     ) -> ResumeExport:
         await self._guard.ensure_export_allowed(user_id, resume_id)
 
@@ -106,13 +111,19 @@ class ResumePdfExportService:
         if resume is None:
             raise NotFoundException("Resume")
 
-        resolved = resolve_template_key(
+        resolved_export_mode = resolve_export_mode(
+            export_mode,
+            fallback=EXPORT_MODE_DESIGNED,
+        )
+        resolved = resolve_export_template_key(
             template_key or resume.template_key,
-            fallback=TEMPLATE_MODERN_SIDEBAR,
+            export_mode=resolved_export_mode,
+            fallback=TEMPLATE_MODERN_PROFESSIONAL,
         )
 
         ctx = resume_to_template_context(resume)
         ctx["pdf_template_key"] = resolved
+        ctx["export_mode"] = resolved_export_mode
 
         timestamp = datetime.now(UTC).isoformat()
         export = await self._create_export_record(

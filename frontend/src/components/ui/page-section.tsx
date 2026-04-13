@@ -16,9 +16,9 @@ type Props = {
 export function PageSection({ eyebrow, title, description, action, children, className }: Props) {
   const headingId = useId();
   return (
-    <section className={cn("space-y-8", className)} aria-labelledby={headingId}>
+    <section className={cn("space-y-7", className)} aria-labelledby={headingId}>
       <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-        <div className="min-w-0 space-y-2">
+        <div className="min-w-0 space-y-2.5">
           {eyebrow ? (
             <p className="text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
               {eyebrow}

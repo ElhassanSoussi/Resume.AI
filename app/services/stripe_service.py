@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, NoReturn
 
 from app.core.config import settings
 from app.core.exceptions import AppException, BadRequestException
@@ -24,12 +24,55 @@ class CheckoutSessionResult:
 def _configure_stripe() -> None:
     import stripe
 
-    if not settings.STRIPE_SECRET_KEY.strip():
+    if not settings.stripe_secret_key_configured:
         raise AppException(
             status_code=503,
-            detail="Stripe is not configured (STRIPE_SECRET_KEY).",
+            detail="Stripe checkout is not configured. Set a real STRIPE_SECRET_KEY.",
         )
     stripe.api_key = settings.STRIPE_SECRET_KEY
+
+
+def _handle_stripe_error(exc: Exception, *, operation: str) -> NoReturn:
+    import stripe
+
+    logger.warning(
+        "stripe.request_failed",
+        operation=operation,
+        error_type=type(exc).__name__,
+        error=str(exc),
+    )
+
+    if isinstance(exc, stripe.error.AuthenticationError):
+        raise AppException(
+            status_code=503,
+            detail="Stripe rejected the API key. Set a real STRIPE_SECRET_KEY.",
+        ) from exc
+    if isinstance(exc, stripe.error.PermissionError):
+        raise AppException(
+            status_code=503,
+            detail="Stripe denied the request. Verify the account's API permissions.",
+        ) from exc
+    if isinstance(exc, stripe.error.InvalidRequestError):
+        raise BadRequestException(
+            detail="Stripe rejected the request. Verify the configured price ID and checkout parameters.",
+        ) from exc
+    if isinstance(exc, stripe.error.RateLimitError):
+        raise AppException(
+            status_code=503,
+            detail="Stripe is temporarily rate limiting requests. Please try again shortly.",
+        ) from exc
+    if isinstance(exc, stripe.error.APIConnectionError):
+        raise AppException(
+            status_code=503,
+            detail="Could not reach Stripe. Please try again.",
+        ) from exc
+    if isinstance(exc, stripe.error.StripeError):
+        raise AppException(
+            status_code=503,
+            detail="Stripe is temporarily unavailable. Please try again.",
+        ) from exc
+
+    raise exc
 
 
 def retrieve_price_unit_amount_cents(price_id: str) -> int:
@@ -37,7 +80,10 @@ def retrieve_price_unit_amount_cents(price_id: str) -> int:
     _configure_stripe()
     import stripe
 
-    price = stripe.Price.retrieve(price_id)
+    try:
+        price = stripe.Price.retrieve(price_id)
+    except Exception as exc:
+        _handle_stripe_error(exc, operation="retrieve_price")
     if price.unit_amount is None:
         raise BadRequestException(detail="Stripe price has no unit_amount.")
     return int(price.unit_amount)
@@ -72,7 +118,10 @@ def create_checkout_session(
     if customer_email:
         params["customer_email"] = customer_email
 
-    session = stripe.checkout.Session.create(**params)
+    try:
+        session = stripe.checkout.Session.create(**params)
+    except Exception as exc:
+        _handle_stripe_error(exc, operation="create_checkout_session")
 
     pi = getattr(session, "payment_intent", None)
     payment_intent_id = str(pi) if pi else None
@@ -91,7 +140,10 @@ def retrieve_checkout_session(session_id: str) -> dict[str, Any]:
     _configure_stripe()
     import stripe
 
-    session = stripe.checkout.Session.retrieve(session_id)
+    try:
+        session = stripe.checkout.Session.retrieve(session_id)
+    except Exception as exc:
+        _handle_stripe_error(exc, operation="retrieve_checkout_session")
     pi = getattr(session, "payment_intent", None)
     if isinstance(pi, dict):
         pi_id = pi.get("id")
@@ -118,8 +170,11 @@ def _event_to_dict(event: Any) -> dict[str, Any]:
 
 def verify_webhook_event(payload: bytes, sig_header: str | None) -> dict[str, Any]:
     """Verify Stripe-Signature and return the event as a plain dict."""
-    if not settings.STRIPE_WEBHOOK_SECRET.strip():
-        raise BadRequestException(detail="STRIPE_WEBHOOK_SECRET is not configured.")
+    if not settings.stripe_webhook_configured:
+        raise AppException(
+            status_code=503,
+            detail="Stripe webhook is not configured. Set a real STRIPE_WEBHOOK_SECRET.",
+        )
     if not sig_header:
         raise BadRequestException(detail="Missing Stripe-Signature header.")
 
@@ -137,6 +192,6 @@ def verify_webhook_event(payload: bytes, sig_header: str | None) -> dict[str, An
         if type(exc).__name__ == "SignatureVerificationError":
             logger.warning("stripe.webhook_signature_invalid", error=str(exc))
             raise BadRequestException(detail="Invalid webhook signature.") from exc
-        raise
+        _handle_stripe_error(exc, operation="verify_webhook_event")
 
     return _event_to_dict(event)

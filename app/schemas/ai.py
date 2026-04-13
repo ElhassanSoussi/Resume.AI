@@ -3,14 +3,18 @@
 from __future__ import annotations
 
 from datetime import date
+from typing import Literal
 
 from pydantic import BaseModel, EmailStr, Field
+
+ResumeWritingMode = Literal["balanced", "concise", "achievement_focused", "ats_focused"]
 
 
 class RewriteSummaryRequest(BaseModel):
     summary_body: str = Field(min_length=1, max_length=5000)
     target_role: str | None = Field(None, max_length=255)
     job_description: str | None = Field(None, max_length=20000)
+    writing_mode: ResumeWritingMode = "balanced"
 
 
 class RewriteSummaryResponse(BaseModel):
@@ -25,6 +29,7 @@ class RewriteExperienceRequest(BaseModel):
     end_date: date | None = None
     is_current: bool = False
     bullets: list[str] = Field(default_factory=list)
+    writing_mode: ResumeWritingMode = "balanced"
 
 
 class RewriteExperienceResponse(BaseModel):
@@ -57,6 +62,7 @@ class OptimizeResumeRequest(BaseModel):
     experiences: list[RewriteExperienceRequest] = Field(default_factory=list)
     educations: list[OptimizeEducationInput] = Field(default_factory=list)
     skills: list[OptimizeSkillCategoryInput] = Field(default_factory=list)
+    writing_mode: ResumeWritingMode = "balanced"
 
 
 class OptimizeResumeResponse(BaseModel):

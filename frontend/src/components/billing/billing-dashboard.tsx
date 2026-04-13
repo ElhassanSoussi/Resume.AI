@@ -12,6 +12,7 @@ import { TableSkeleton } from "@/components/ui/table-skeleton";
 import { useExportHistory, usePaymentList } from "@/hooks/use-billing";
 import { APP_ROUTES } from "@/lib/auth/routes";
 import { formatMoneyCents } from "@/lib/format-money";
+import { getResumeTemplateMeta } from "@/lib/resume/constants";
 import { cn } from "@/lib/utils";
 
 function statusBadge(status: string) {
@@ -45,17 +46,42 @@ export function BillingDashboard() {
   const payments = usePaymentList(0, 50);
   const exports = useExportHistory(0, 50);
 
-  const payErr = payments.error instanceof Error ? payments.error.message : null;
-  const expErr = exports.error instanceof Error ? exports.error.message : null;
+  const paymentCount = payments.data?.length ?? 0;
+  const exportCount = exports.data?.length ?? 0;
 
   return (
     <PageSection
       eyebrow="Account"
       title="Payments & exports"
-      description="Stripe receipts and generated PDFs for your workspace."
+      description="Receipts, export history, and the clearest path from payment to final PDF."
     >
       <div className="space-y-8">
         <ApiTokenCallout />
+
+        <div className="grid gap-4 lg:grid-cols-3">
+          <Card className="glass-panel border-white/[0.09]">
+            <CardContent className="pt-5">
+              <p className="text-[0.72rem] font-medium uppercase tracking-[0.18em] text-muted-foreground">Payments</p>
+              <p className="mt-2 font-heading text-3xl font-semibold tracking-tight text-foreground">{paymentCount}</p>
+              <p className="mt-2 text-sm text-muted-foreground">Successful and pending checkout attempts live here.</p>
+            </CardContent>
+          </Card>
+          <Card className="glass-panel border-white/[0.09]">
+            <CardContent className="pt-5">
+              <p className="text-[0.72rem] font-medium uppercase tracking-[0.18em] text-muted-foreground">Exports</p>
+              <p className="mt-2 font-heading text-3xl font-semibold tracking-tight text-foreground">{exportCount}</p>
+              <p className="mt-2 text-sm text-muted-foreground">Generated PDFs stay available here after payment.</p>
+            </CardContent>
+          </Card>
+          <Card className="glass-panel border-white/[0.09]">
+            <CardContent className="pt-5">
+              <p className="text-[0.72rem] font-medium uppercase tracking-[0.18em] text-muted-foreground">How it works</p>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                Purchase once per resume, return to the editor, generate the PDF, then download it from export history anytime.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
 
         <Card className="glass-panel border-white/[0.09]">
           <CardHeader className="flex flex-row items-start gap-3 space-y-0 pb-2">
@@ -70,14 +96,20 @@ export function BillingDashboard() {
           <CardContent>
             {payments.isLoading ? <TableSkeleton rows={5} /> : null}
             {payments.isError ? (
-              <p className="text-sm text-destructive" role="alert">
-                {payErr ?? "Could not load payments."}
-              </p>
+              <div className="rounded-2xl border border-destructive/30 bg-destructive/10 p-4" role="alert">
+                <p className="font-medium text-destructive">We couldn’t load payment activity right now.</p>
+                <p className="mt-2 text-sm text-destructive/90">
+                  Refresh to try again. Completed charges and receipts are not affected.
+                </p>
+                <Button variant="outline" size="sm" className="mt-4" onClick={() => void payments.refetch()}>
+                  Refresh payments
+                </Button>
+              </div>
             ) : null}
             {!payments.isLoading && !payments.isError && !payments.data?.length ? (
               <EmptyState
                 title="No payments yet"
-                description="When you purchase a PDF export, receipts appear here."
+                description="When you unlock a resume export, the payment record shows up here with checkout status and receipt details."
               />
             ) : null}
             {!payments.isLoading && !payments.isError && payments.data && payments.data.length > 0 ? (
@@ -151,14 +183,20 @@ export function BillingDashboard() {
           <CardContent>
             {exports.isLoading ? <TableSkeleton rows={5} /> : null}
             {exports.isError ? (
-              <p className="text-sm text-destructive" role="alert">
-                {expErr ?? "Could not load exports."}
-              </p>
+              <div className="rounded-2xl border border-destructive/30 bg-destructive/10 p-4" role="alert">
+                <p className="font-medium text-destructive">We couldn’t load export history right now.</p>
+                <p className="mt-2 text-sm text-destructive/90">
+                  Refresh to try again. Existing files remain available in storage.
+                </p>
+                <Button variant="outline" size="sm" className="mt-4" onClick={() => void exports.refetch()}>
+                  Refresh exports
+                </Button>
+              </div>
             ) : null}
             {!exports.isLoading && !exports.isError && !exports.data?.length ? (
               <EmptyState
                 title="No exports yet"
-                description="Generate a PDF from any paid resume — exports list here with download links when available."
+                description="After payment, generate the PDF from the resume editor. Completed exports appear here with download links and template details."
               />
             ) : null}
             {!exports.isLoading && !exports.isError && exports.data && exports.data.length > 0 ? (
@@ -193,7 +231,9 @@ export function BillingDashboard() {
                           {new Date(x.created_at).toLocaleString()}
                         </td>
                         <td className="px-4 py-3.5 font-medium text-foreground">{x.resume_title}</td>
-                        <td className="px-4 py-3.5 text-muted-foreground">{x.template_key}</td>
+                        <td className="px-4 py-3.5 text-muted-foreground">
+                          {getResumeTemplateMeta(x.template_key).label}
+                        </td>
                         <td className="px-4 py-3.5">{statusBadge(x.status)}</td>
                         <td className="px-4 py-3.5">
                           <div className="flex flex-wrap gap-2">

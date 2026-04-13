@@ -44,6 +44,16 @@ from app.services import stripe_service
 logger = get_logger(__name__)
 
 
+def _stripe_checkout_not_configured_detail() -> str:
+    missing = ", ".join(settings.stripe_checkout_config_errors)
+    return f"Stripe checkout is not configured. Set real values for: {missing}."
+
+
+def _is_placeholder_price_id(value: str) -> bool:
+    normalized = value.strip().lower()
+    return normalized == "" or normalized == "price_" or "..." in value
+
+
 def _stripe_object_as_dict(obj: Any) -> dict[str, Any]:
     if obj is None:
         return {}
@@ -120,6 +130,14 @@ class PaymentService:
         user_id: uuid.UUID,
         payload: CreateCheckoutSessionRequest,
     ) -> CreateCheckoutSessionResponse:
+        if payload.price_id is not None and _is_placeholder_price_id(payload.price_id):
+            raise BadRequestException(detail="A real Stripe price_id is required.")
+        if payload.price_id is None and not settings.stripe_configured:
+            raise AppException(
+                status_code=503,
+                detail=_stripe_checkout_not_configured_detail(),
+            )
+
         resume = None
         if settings.supabase_configured:
             try:
@@ -180,9 +198,7 @@ class PaymentService:
 
     def _resolve_price_id(self, product_type: str) -> str | None:
         if product_type == PRODUCT_SINGLE_PDF_EXPORT:
-            from app.core.config import settings
-
-            return settings.STRIPE_PRICE_ID_SINGLE_EXPORT.strip() or None
+            return settings.STRIPE_PRICE_ID_SINGLE_EXPORT.strip() if settings.stripe_price_configured else None
         return None
 
     async def get_resume_payment_status(

@@ -1,4 +1,5 @@
 import { api } from "@/lib/api/client";
+import type { ResumeExportMode } from "@/lib/resume/constants";
 import type { ExportHistoryItem, PdfExportMetadata } from "@/lib/types/billing";
 
 export async function listExportHistory(params?: { offset?: number; limit?: number }) {
@@ -13,6 +14,9 @@ export async function getLatestExportMetadata(resumeId: string) {
   return api.get<PdfExportMetadata>(`/exports/${resumeId}`);
 }
 
-export async function generateResumePdf(resumeId: string, body?: { template_key?: string | null }) {
+export async function generateResumePdf(
+  resumeId: string,
+  body?: { template_key?: string | null; export_mode?: ResumeExportMode | null },
+) {
   return api.post<PdfExportMetadata>(`/exports/${resumeId}/generate-pdf`, body ?? {});
 }

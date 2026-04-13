@@ -130,7 +130,8 @@ async def generate_resume_pdf(
     uid = uuid.UUID(user_id)
     svc = ResumePdfExportService(session)
     tpl = body.template_key if body else None
-    export = await svc.generate_pdf(uid, resume_id, template_key=tpl)
+    export_mode = body.export_mode if body else None
+    export = await svc.generate_pdf(uid, resume_id, template_key=tpl, export_mode=export_mode)
     if settings.supabase_configured:
         try:
             resume = await asyncio.to_thread(fetch_resume_detail, uid, resume_id)

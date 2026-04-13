@@ -33,7 +33,15 @@ class GeneratePdfRequest(BaseModel):
     template_key: str | None = Field(
         default=None,
         max_length=100,
-        description="One of: minimal_pro, modern_sidebar, executive. Omit to use the resume editor template.",
+        description=(
+            "One of: ats_classic, compact_ats, modern_professional, corporate_minimal, "
+            "crisp_tech, graduate_starter, executive_serif, elegant_executive, creative_clean."
+        ),
+    )
+    export_mode: str | None = Field(
+        default=None,
+        pattern=r"^(ats|designed)$",
+        description="Use `ats` for the safest one-column export, or `designed` for the selected premium template.",
     )
 
 

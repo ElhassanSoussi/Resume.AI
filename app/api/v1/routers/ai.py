@@ -23,11 +23,12 @@ async def rewrite_summary(
     _user_id: CurrentUserID,
     ai: AIServiceDep,
 ) -> RewriteSummaryResponse:
-    """Rewrite a professional summary using only supplied facts."""
+    """Rewrite a professional summary using only supplied facts and the selected writing mode."""
     return await ai.rewrite_summary(
         summary_body=payload.summary_body,
         target_role=payload.target_role,
         job_description=payload.job_description,
+        writing_mode=payload.writing_mode,
     )
 
 
@@ -47,5 +48,5 @@ async def optimize_resume(
     _user_id: CurrentUserID,
     ai: AIServiceDep,
 ) -> OptimizeResumeResponse:
-    """ATS-oriented pass across summary, experiences, and skills (no new facts)."""
+    """Fact-preserving optimization pass across summary, experiences, and skills."""
     return await ai.optimize_resume(payload)

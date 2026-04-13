@@ -184,7 +184,7 @@
   }
 
   .glass-panel {
-    @apply border border-white/10 bg-card/50 shadow-2xl shadow-black/45 backdrop-blur-xl;
+    @apply border border-white/10 bg-card/55 shadow-2xl shadow-black/45 backdrop-blur-xl;
     box-shadow:
       0 1px 0 0 oklch(1 0 0 / 0.06) inset,
       0 18px 48px -20px rgba(0, 0, 0, 0.55);
@@ -196,12 +196,12 @@
   }
 
   .surface-table {
-    @apply overflow-hidden rounded-xl border border-white/[0.08] bg-card/25;
+    @apply overflow-hidden rounded-2xl border border-white/[0.08] bg-card/25;
     box-shadow: 0 1px 0 0 oklch(1 0 0 / 0.04) inset;
   }
 
   .glass-panel-lift {
-    @apply border border-white/[0.09] bg-card/50 shadow-2xl shadow-black/45 backdrop-blur-xl duration-300;
+    @apply border border-white/[0.09] bg-card/55 shadow-2xl shadow-black/45 backdrop-blur-xl duration-300;
     transition-property: transform, box-shadow, border-color;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow:

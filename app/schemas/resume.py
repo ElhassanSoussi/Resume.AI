@@ -14,7 +14,7 @@ from app.schemas.resume_summary import SummaryCreate, SummaryRead
 
 class ResumeCreate(BaseModel):
     title: str = Field(min_length=1, max_length=255)
-    template_key: str = Field(default="modern", max_length=100)
+    template_key: str = Field(default="modern_professional", max_length=100)
 
     personal_info: PersonalInfoCreate | None = None
     summary: SummaryCreate | None = None
@@ -28,7 +28,7 @@ class ResumeFullUpdate(BaseModel):
     explicitly defaulted.  All child sections are replaced wholesale."""
 
     title: str = Field(min_length=1, max_length=255)
-    template_key: str = Field(default="modern", max_length=100)
+    template_key: str = Field(default="modern_professional", max_length=100)
     status: str = Field(default="draft", pattern=r"^(draft|complete)$")
 
     personal_info: PersonalInfoCreate | None = None
