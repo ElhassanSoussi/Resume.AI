@@ -42,7 +42,7 @@ from app.schemas.resume_version import (
     TailorResumeResponse,
 )
 from app.services.resume import ResumeService
-from app.services.resume_version import ResumeVersionService, _resume_to_snapshot
+from app.services.resume_version import ResumeVersionService, resume_to_snapshot
 
 router = APIRouter()
 
@@ -217,7 +217,7 @@ async def tailor_resume(
 ) -> TailorResumeResponse:
     uid = uuid.UUID(user_id)
     resume = await ResumeService(session).get(resume_id, uid)
-    snapshot = _resume_to_snapshot(resume)
+    snapshot = resume_to_snapshot(resume)
 
     tailored = await ai.tailor_resume(
         resume_snapshot=snapshot,

@@ -37,6 +37,8 @@ class ResumeVersion(BaseModel):
     resume: Mapped["Resume"] = relationship(back_populates="versions")  # noqa: F821
     job_applications: Mapped[list["JobApplication"]] = relationship(  # noqa: F821
         back_populates="resume_version",
-        cascade="all, delete-orphan",
+        # resume_version_id is nullable (SET NULL on version delete), so delete-orphan is
+        # intentionally omitted — job applications survive version deletion.
+        cascade="save-update, merge",
         lazy="noload",
     )

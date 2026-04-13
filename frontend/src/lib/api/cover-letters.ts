@@ -12,7 +12,9 @@ export function listCoverLetters(params: { offset?: number; limit?: number } = {
   const qs = new URLSearchParams();
   if (params.offset != null) qs.set("offset", String(params.offset));
   if (params.limit != null) qs.set("limit", String(params.limit));
-  return api.get<CoverLetterListResponse>(`/cover-letters/?${qs}`);
+  const q = qs.toString();
+  const url = q ? `/cover-letters/?${q}` : "/cover-letters/";
+  return api.get<CoverLetterListResponse>(url);
 }
 
 export function getCoverLetter(id: string) {

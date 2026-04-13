@@ -18,7 +18,7 @@ from app.schemas.resume_version import ResumeVersionUpdate
 logger = get_logger(__name__)
 
 
-def _resume_to_snapshot(resume: Resume) -> dict[str, Any]:
+def resume_to_snapshot(resume: Resume) -> dict[str, Any]:
     """Serialize a Resume ORM object into a plain dict snapshot for versioning."""
     pi = resume.personal_info
     return {
@@ -111,7 +111,7 @@ class ResumeVersionService:
     ) -> ResumeVersion:
         """Create a version from the current live resume state."""
         resume = await self._get_resume_owned(resume_id, user_id)
-        snapshot = _resume_to_snapshot(resume)
+        snapshot = resume_to_snapshot(resume)
         data: dict[str, Any] = {
             "resume_id": resume_id,
             "user_id": user_id,

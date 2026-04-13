@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Copy, Loader2, Pencil, Plus, Trash2 } from "lucide-react";
+import { Copy, History, Loader2, Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -103,7 +103,7 @@ export function ResumeVersionList({ resumeId, resumeTitle }: Props) {
         </div>
       ) : items.length === 0 ? (
         <EmptyState
-          icon={Plus}
+          icon={History}
           title="No versions yet"
           description='Click "Save current" to snapshot the resume in its current state.'
         />

@@ -18,6 +18,7 @@ from app.core.deps import AIServiceDep, CurrentUserID, DBSession
 from app.schemas.common import MessageResponse
 from app.schemas.cover_letter import (
     CoverLetterCreate,
+    CoverLetterListItem,
     CoverLetterListResponse,
     CoverLetterRead,
     CoverLetterUpdate,
@@ -26,7 +27,7 @@ from app.schemas.cover_letter import (
 )
 from app.services.cover_letter import CoverLetterService
 from app.services.resume import ResumeService
-from app.services.resume_version import _resume_to_snapshot
+from app.services.resume_version import resume_to_snapshot
 
 router = APIRouter()
 
@@ -50,8 +51,6 @@ async def list_cover_letters(
     offset: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
 ) -> CoverLetterListResponse:
-    from app.schemas.cover_letter import CoverLetterListItem
-
     items, total = await CoverLetterService(session).list_for_user(
         uuid.UUID(user_id), offset=offset, limit=limit
     )
@@ -106,7 +105,7 @@ async def generate_cover_letter(
     uid = uuid.UUID(user_id)
 
     resume = await ResumeService(session).get(payload.resume_id, uid)
-    snapshot = _resume_to_snapshot(resume)
+    snapshot = resume_to_snapshot(resume)
 
     body = await ai.generate_cover_letter(
         resume_snapshot=snapshot,

@@ -22,6 +22,7 @@ type Props = {
 };
 
 export function CoverLetterBuilder({ resumes, initial }: Props) {
+  // All hooks must be declared unconditionally before any early return.
   const router = useRouter();
   const generate = useGenerateCoverLetter();
   const update = useUpdateCoverLetter(initial?.id ?? "");
@@ -34,6 +35,24 @@ export function CoverLetterBuilder({ resumes, initial }: Props) {
   const [body, setBody] = useState(initial?.body ?? "");
 
   const isEditing = Boolean(initial);
+
+  if (resumes.length === 0) {
+    return (
+      <PageSection
+        eyebrow="Cover Letters"
+        title="New Cover Letter"
+        description="You need at least one resume before generating a cover letter."
+      >
+        <p className="text-sm text-muted-foreground">
+          Go to{" "}
+          <a href="/resumes/new" className="text-primary underline underline-offset-4">
+            New resume
+          </a>{" "}
+          to create your first resume, then come back here.
+        </p>
+      </PageSection>
+    );
+  }
 
   async function handleGenerate() {
     if (!resumeId || !jobDesc.trim()) {
@@ -61,7 +80,12 @@ export function CoverLetterBuilder({ resumes, initial }: Props) {
   async function handleSave() {
     if (!initial) return;
     try {
-      await update.mutateAsync({ body, title, company_name: company, target_role: role });
+      await update.mutateAsync({
+        body,
+        title,
+        company_name: company.trim() || null,
+        target_role: role.trim() || null,
+      });
       toast.success("Cover letter saved.");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Save failed.");
@@ -96,6 +120,7 @@ export function CoverLetterBuilder({ resumes, initial }: Props) {
                 <Label htmlFor="cl-resume">Resume</Label>
                 <select
                   id="cl-resume"
+                  aria-label="Select resume"
                   value={resumeId}
                   onChange={(e) => setResumeId(e.target.value)}
                   className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"

@@ -12,7 +12,9 @@ export function listJobs(params: { status?: JobStatus; offset?: number; limit?: 
   if (params.status) qs.set("status", params.status);
   if (params.offset != null) qs.set("offset", String(params.offset));
   if (params.limit != null) qs.set("limit", String(params.limit));
-  return api.get<JobApplicationListResponse>(`/jobs/?${qs}`);
+  const q = qs.toString();
+  const url = q ? `/jobs/?${q}` : "/jobs/";
+  return api.get<JobApplicationListResponse>(url);
 }
 
 export function getJob(id: string) {

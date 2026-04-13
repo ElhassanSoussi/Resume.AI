@@ -11,7 +11,11 @@ export function listVersions(resumeId: string, params: { offset?: number; limit?
   const qs = new URLSearchParams();
   if (params.offset != null) qs.set("offset", String(params.offset));
   if (params.limit != null) qs.set("limit", String(params.limit));
-  return api.get<ResumeVersionListResponse>(`/resumes/${resumeId}/versions?${qs}`);
+  const q = qs.toString();
+  const url = q
+    ? `/resumes/${resumeId}/versions?${q}`
+    : `/resumes/${resumeId}/versions`;
+  return api.get<ResumeVersionListResponse>(url);
 }
 
 export function getVersion(resumeId: string, versionId: string) {

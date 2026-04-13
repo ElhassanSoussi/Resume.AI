@@ -62,11 +62,12 @@ class Resume(BaseModel):
     versions: Mapped[list["ResumeVersion"]] = relationship(  # noqa: F821
         back_populates="resume",
         cascade="all, delete-orphan",
-        order_by="ResumeVersion.created_at.desc()",
         lazy="noload",
     )
     cover_letters: Mapped[list["CoverLetter"]] = relationship(  # noqa: F821
         back_populates="resume",
-        cascade="all, delete-orphan",
+        # resume_id is nullable (SET NULL on resume delete), so delete-orphan is intentionally
+        # omitted — cover letters survive resume deletion with resume_id set to NULL.
+        cascade="save-update, merge",
         lazy="noload",
     )
