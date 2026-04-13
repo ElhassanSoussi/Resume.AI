@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter
 
-from app.api.v1.routers import ai, auth, exports, health, payments, resumes, users
+from app.api.v1.routers import ai, auth, cover_letters, exports, health, jobs, payments, resumes, users
 
 api_router = APIRouter()
 
@@ -15,3 +15,5 @@ api_router.include_router(resumes.router, prefix="/resumes", tags=["Resumes"])
 api_router.include_router(ai.router, prefix="/ai", tags=["AI"])
 api_router.include_router(payments.router, prefix="/payments", tags=["Payments"])
 api_router.include_router(exports.router, prefix="/exports", tags=["Exports"])
+api_router.include_router(cover_letters.router, prefix="/cover-letters", tags=["Cover Letters"])
+api_router.include_router(jobs.router, prefix="/jobs", tags=["Jobs"])

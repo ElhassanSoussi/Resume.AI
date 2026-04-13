@@ -15,9 +15,11 @@ from app.schemas.ai import (
     RewriteSummaryResponse,
 )
 from app.services.ai.output_schemas import (
+    GenerateCoverLetterAIOutput,
     OptimizeResumeAIOutput,
     RewriteExperienceAIOutput,
     RewriteSummaryAIOutput,
+    TailorResumeAIOutput,
 )
 from app.services.ai import prompt_builders
 from app.services.llm_provider import LLMProvider, LLMProviderError, OpenAICompatibleLLM, parse_json_object
@@ -127,6 +129,68 @@ class AIService:
             skill_phrases=validated.skill_phrases,
             ats_notes=validated.ats_notes.strip(),
         )
+
+    async def generate_cover_letter(
+        self,
+        *,
+        resume_snapshot: dict,
+        job_description: str,
+        company_name: str | None,
+        target_role: str | None,
+    ) -> str:
+        """Return a plain-text cover letter body generated from the resume + job description."""
+        system = prompt_builders.system_generate_cover_letter()
+        user = prompt_builders.user_generate_cover_letter(
+            resume_snapshot=resume_snapshot,
+            job_description=job_description,
+            company_name=company_name,
+            target_role=target_role,
+        )
+        raw = await self._complete_and_parse(
+            system=system,
+            user=user,
+            max_tokens=settings.AI_MAX_OUTPUT_TOKENS_SUMMARY * 2,
+        )
+        try:
+            validated = GenerateCoverLetterAIOutput.model_validate(raw)
+        except Exception as exc:
+            logger.warning("ai.cover_letter_validation_failed", error=str(exc))
+            raise BadRequestException(
+                detail="AI returned data that failed validation. Try again with clearer input.",
+            ) from exc
+        return validated.body
+
+    async def tailor_resume(
+        self,
+        *,
+        resume_snapshot: dict,
+        job_description: str,
+        n_experiences: int,
+    ) -> TailorResumeAIOutput:
+        """Return a tailored resume snapshot aligned with the given job description."""
+        system = prompt_builders.system_tailor_resume()
+        user = prompt_builders.user_tailor_resume(
+            resume_snapshot=resume_snapshot,
+            job_description=job_description,
+        )
+        raw = await self._complete_and_parse(
+            system=system,
+            user=user,
+            max_tokens=settings.AI_MAX_OUTPUT_TOKENS_OPTIMIZE,
+        )
+        try:
+            validated = TailorResumeAIOutput.model_validate(raw)
+        except Exception as exc:
+            logger.warning("ai.tailor_validation_failed", error=str(exc))
+            raise BadRequestException(
+                detail="AI returned data that failed validation. Try again with clearer input.",
+            ) from exc
+
+        if len(validated.experience_bullets) != n_experiences:
+            raise BadRequestException(
+                detail="AI output did not match resume structure. Please retry.",
+            )
+        return validated
 
     async def _complete_and_parse(
         self,

@@ -11,7 +11,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageSection } from "@/components/ui/page-section";
 import { useDeleteResume, useResumeList } from "@/hooks/use-resumes";
-import { ApiError } from "@/lib/api/client";
 import { APP_ROUTES } from "@/lib/auth/routes";
 
 function formatDate(iso: string) {
@@ -32,11 +31,13 @@ export function DashboardResumeList() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const items = data?.items ?? [];
+  const total = data?.total ?? 0;
+  const resumeLabel = total === 1 ? "resume" : "resumes";
+  const refreshSuffix = isFetching ? " · refreshing" : "";
 
-  const subtitle =
-    data != null
-      ? `${data.total} ${data.total === 1 ? "resume" : "resumes"}${isFetching ? " · refreshing" : ""}`
-      : "Create, edit, and export ATS-ready résumés.";
+  const subtitle = data == null
+    ? "Create, edit, and export ATS-ready résumés."
+    : `${total} ${resumeLabel}${refreshSuffix}`;
 
   return (
     <PageSection
@@ -61,7 +62,7 @@ export function DashboardResumeList() {
             className="rounded-xl border border-destructive/35 bg-destructive/10 px-4 py-4 text-sm"
           >
             <p className="font-medium text-destructive">
-              {error instanceof ApiError ? error.message : "Could not load resumes."}
+              {error instanceof Error ? error.message : "Could not load resumes."}
             </p>
             <Button type="button" variant="outline" size="sm" className="mt-4" onClick={() => void refetch()}>
               Try again
@@ -104,6 +105,12 @@ export function DashboardResumeList() {
                     <Button variant="secondary" size="sm" asChild>
                       <Link href={APP_ROUTES.resumePreview(r.id)}>Preview</Link>
                     </Button>
+                    <Button variant="ghost" size="sm" asChild>
+                      <Link href={APP_ROUTES.resumeVersions(r.id)}>Versions</Link>
+                    </Button>
+                    <Button variant="ghost" size="sm" asChild>
+                      <Link href={APP_ROUTES.resumeTailor(r.id)}>Tailor</Link>
+                    </Button>
                     <Button
                       type="button"
                       variant="ghost"
@@ -112,7 +119,7 @@ export function DashboardResumeList() {
                       disabled={deleteMut.isPending && deletingId === r.id}
                       aria-label={`Delete ${r.title || "resume"}`}
                       onClick={() => {
-                        if (!window.confirm("Delete this resume permanently?")) return;
+                        if (!globalThis.window.confirm("Delete this resume permanently?")) return;
                         setDeletingId(r.id);
                         deleteMut.mutate(r.id, {
                           onSettled: () => setDeletingId(null),

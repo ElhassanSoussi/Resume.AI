@@ -95,6 +95,19 @@ class Settings(BaseSettings):
             return [origin.strip() for origin in v.strip("[]").split(",")]
         return v
 
+    @field_validator("DEBUG", mode="before")
+    @classmethod
+    def parse_debug_flag(cls, v: Any) -> bool:
+        if isinstance(v, bool):
+            return v
+        if isinstance(v, str):
+            normalized = v.strip().lower()
+            if normalized in {"1", "true", "t", "yes", "y", "on", "debug", "development"}:
+                return True
+            if normalized in {"0", "false", "f", "no", "n", "off", "release", "production"}:
+                return False
+        return bool(v)
+
     @field_validator("EXPORT_STORAGE_ROOT", mode="before")
     @classmethod
     def parse_export_root(cls, v: Any) -> Path:

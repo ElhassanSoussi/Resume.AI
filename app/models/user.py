@@ -32,3 +32,8 @@ class User(BaseModel):
         cascade="all, delete-orphan",
         lazy="noload",
     )
+    cover_letters: Mapped[list["CoverLetter"]] = relationship(  # noqa: F821
+        back_populates="owner",
+        cascade="all, delete-orphan",
+        lazy="noload",
+    )

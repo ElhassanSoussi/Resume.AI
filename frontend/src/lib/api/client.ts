@@ -14,14 +14,24 @@ export function getApiBaseUrl(): string {
   if (raw != null && raw.trim() !== "") {
     return raw.trim().replace(/\/$/, "");
   }
-  if (typeof window !== "undefined") {
-    return `${window.location.origin}/api/v1`;
+  if (globalThis.window !== undefined) {
+    return `${globalThis.window.location.origin}/api/v1`;
   }
   const internal = process.env.API_INTERNAL_BASE_URL?.trim();
   if (internal != null && internal !== "") {
     return internal.replace(/\/$/, "");
   }
   return "http://127.0.0.1:8000/api/v1";
+}
+
+function describeApiTarget(base: string): string {
+  if (
+    typeof globalThis.window === "object" &&
+    base.startsWith(globalThis.window.location.origin)
+  ) {
+    return "same-origin /api/v1 proxy";
+  }
+  return base;
 }
 
 export class ApiError extends Error {
@@ -94,7 +104,8 @@ export async function apiFetch<T>(
   options: RequestOptions = {},
 ): Promise<T> {
   const base = getApiBaseUrl();
-  const url = path.startsWith("http") ? path : `${base}${path.startsWith("/") ? path : `/${path}`}`;
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  const url = path.startsWith("http") ? path : `${base}${normalizedPath}`;
   const headers = new Headers(options.headers);
 
   if (!options.skipAuth) {
@@ -110,12 +121,27 @@ export async function apiFetch<T>(
     body = JSON.stringify(options.body);
   }
 
-  const res = await fetch(url, {
-    ...options,
-    headers,
-    body,
-    credentials: "include",
-  });
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      ...options,
+      headers,
+      body,
+      credentials: "include",
+    });
+  } catch (error) {
+    const message =
+      error instanceof Error && /NEXT_PUBLIC_API_URL/.test(error.message)
+        ? error.message
+        : [
+            `Could not reach the backend API at ${url}.`,
+            `Resolved target: ${describeApiTarget(base)}.`,
+            "For local dev, start FastAPI on port 8000.",
+            "For deployed frontend, configure either API_PROXY_TARGET to your backend origin",
+            "or NEXT_PUBLIC_API_URL to the full /api/v1 URL.",
+          ].join(" ");
+    throw new ApiError(message, 0, error instanceof Error ? error.message : error);
+  }
 
   const payload = await parseJsonSafe(res);
 

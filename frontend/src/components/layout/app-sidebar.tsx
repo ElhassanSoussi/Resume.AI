@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  Briefcase,
   CreditCard,
   FileText,
   LayoutDashboard,
@@ -18,6 +19,8 @@ import { Separator } from "@/components/ui/separator";
 const main = [
   { href: APP_ROUTES.dashboard, label: "Dashboard", icon: LayoutDashboard },
   { href: APP_ROUTES.resumeNew, label: "New resume", icon: PlusCircle },
+  { href: APP_ROUTES.coverLetters, label: "Cover letters", icon: FileText },
+  { href: APP_ROUTES.jobs, label: "Job tracker", icon: Briefcase },
   { href: APP_ROUTES.billing, label: "Billing", icon: CreditCard },
   { href: APP_ROUTES.settings, label: "Settings", icon: Settings },
 ] as const;

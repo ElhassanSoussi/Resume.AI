@@ -7,6 +7,9 @@ from app.models.resume_education import ResumeEducation
 from app.models.resume_skill import ResumeSkill
 from app.models.resume_export import ResumeExport
 from app.models.payment import Payment
+from app.models.cover_letter import CoverLetter
+from app.models.resume_version import ResumeVersion
+from app.models.job_application import JobApplication
 
 __all__ = [
     "User",
@@ -18,4 +21,7 @@ __all__ = [
     "ResumeSkill",
     "ResumeExport",
     "Payment",
+    "CoverLetter",
+    "ResumeVersion",
+    "JobApplication",
 ]

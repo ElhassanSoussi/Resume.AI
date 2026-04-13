@@ -30,11 +30,15 @@ export function ApiTokenCallout() {
   if (!visible) return null;
 
   return (
-    <output className="block rounded-xl border border-amber-500/25 bg-amber-500/[0.07] px-4 py-3 text-sm leading-relaxed text-amber-100/95">
+    <aside
+      role="status"
+      aria-live="polite"
+      className="block rounded-xl border border-amber-500/25 bg-amber-500/[0.07] px-4 py-3 text-sm leading-relaxed text-amber-100/95"
+    >
       <p>
         <span className="font-medium text-amber-50">Authentication required.</span>{" "}
         Sign in with your Supabase-backed account so API calls include a Bearer token.
       </p>
-    </output>
+    </aside>
   );
 }

@@ -70,3 +70,59 @@ def user_optimize_resume(resume_snapshot: dict[str, Any]) -> str:
         "resume": resume_snapshot,
     }
     return json.dumps(payload, ensure_ascii=False)
+
+
+# ── Cover letter generation ───────────────────────────────────────────────────
+
+def system_generate_cover_letter() -> str:
+    return f"""You are a professional cover letter writer.
+{_JSON_ONLY_RULES}
+The JSON object must have exactly one key: "body" (string).
+Write a compelling, concise 3-paragraph cover letter (under 400 words) tailored to the job description.
+Use only information present in the resume snapshot. Do not invent experience, roles, or achievements.
+Maintain a confident yet genuine tone. Address the hiring manager generically if no name is given."""
+
+
+def user_generate_cover_letter(
+    *,
+    resume_snapshot: dict[str, Any],
+    job_description: str,
+    company_name: str | None,
+    target_role: str | None,
+) -> str:
+    payload: dict[str, Any] = {
+        "task": "generate_cover_letter",
+        "resume": resume_snapshot,
+        "job_description": job_description,
+    }
+    if company_name:
+        payload["company_name"] = company_name
+    if target_role:
+        payload["target_role"] = target_role
+    return json.dumps(payload, ensure_ascii=False)
+
+
+# ── Resume tailoring ──────────────────────────────────────────────────────────
+
+def system_tailor_resume() -> str:
+    return f"""You are an expert resume editor optimizing for a specific job description.
+{_JSON_ONLY_RULES}
+Return a JSON object with these keys (same structure as optimize_full_resume):
+- "summary" (string or null): ATS-tailored rewrite using only existing summary facts, aligned with job keywords.
+- "experience_bullets" (array of arrays of strings): Must have the same length as input.experiences.
+  Rewrite bullets to mirror keywords from the job description using only existing facts.
+- "skill_phrases" (array of strings, optional): Up to 12 short phrases from existing skills/items that match job requirements.
+- "ats_notes" (string): Brief notes (max 400 chars) on keyword gaps or alignment using only words from the input."""
+
+
+def user_tailor_resume(
+    *,
+    resume_snapshot: dict[str, Any],
+    job_description: str,
+) -> str:
+    payload = {
+        "task": "tailor_resume_for_job",
+        "resume": resume_snapshot,
+        "job_description": job_description,
+    }
+    return json.dumps(payload, ensure_ascii=False)

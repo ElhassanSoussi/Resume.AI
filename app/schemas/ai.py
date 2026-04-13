@@ -64,3 +64,36 @@ class OptimizeResumeResponse(BaseModel):
     experience_bullets: list[list[str]]
     skill_phrases: list[str] = Field(default_factory=list)
     ats_notes: str = ""
+
+
+# ── Cover Letter generation ───────────────────────────────────────────────────
+
+class GenerateCoverLetterAIRequest(BaseModel):
+    """Internal DTO passed to AIService.generate_cover_letter."""
+
+    resume_snapshot: dict = Field(default_factory=dict)
+    job_description: str = Field(min_length=10, max_length=20000)
+    company_name: str | None = Field(None, max_length=255)
+    target_role: str | None = Field(None, max_length=255)
+
+
+class GenerateCoverLetterAIResponse(BaseModel):
+    body: str
+
+
+# ── Resume tailoring ──────────────────────────────────────────────────────────
+
+class TailorResumeAIRequest(BaseModel):
+    """Internal DTO passed to AIService.tailor_resume."""
+
+    resume_snapshot: dict = Field(default_factory=dict)
+    job_description: str = Field(min_length=10, max_length=20000)
+
+
+class TailorResumeAIResponse(BaseModel):
+    """Tailored resume — same shape as OptimizeResumeResponse."""
+
+    summary: str | None = None
+    experience_bullets: list[list[str]]
+    skill_phrases: list[str] = Field(default_factory=list)
+    ats_notes: str = ""

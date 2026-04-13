@@ -60,7 +60,6 @@ export function ResumeAiPanel({ getValues, setValue, ai }: Props) {
           setValue("summary.body", res.rewritten_summary, { shouldDirty: true, shouldTouch: true });
           setSummaryOpen(false);
         },
-        onError: () => { },
       },
     );
   };
@@ -79,7 +78,6 @@ export function ResumeAiPanel({ getValues, setValue, ai }: Props) {
             setAtsOpen(true);
           }
         },
-        onError: () => { },
       });
     } catch (e) {
       setLocalError(e instanceof Error ? e.message : "Could not build optimize request.");

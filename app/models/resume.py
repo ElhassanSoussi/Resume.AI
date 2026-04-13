@@ -59,3 +59,14 @@ class Resume(BaseModel):
         cascade="all, delete-orphan",
         lazy="noload",
     )
+    versions: Mapped[list["ResumeVersion"]] = relationship(  # noqa: F821
+        back_populates="resume",
+        cascade="all, delete-orphan",
+        order_by="ResumeVersion.created_at.desc()",
+        lazy="noload",
+    )
+    cover_letters: Mapped[list["CoverLetter"]] = relationship(  # noqa: F821
+        back_populates="resume",
+        cascade="all, delete-orphan",
+        lazy="noload",
+    )

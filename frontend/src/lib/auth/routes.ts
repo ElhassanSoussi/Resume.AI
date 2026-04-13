@@ -19,6 +19,12 @@ export const APP_ROUTES = {
   resumeNew: "/resumes/new",
   resumeEdit: (id: string) => `/resumes/${id}/edit` as const,
   resumePreview: (id: string) => `/resumes/${id}/preview` as const,
+  resumeVersions: (id: string) => `/resumes/${id}/versions` as const,
+  resumeTailor: (id: string) => `/resumes/${id}/tailor` as const,
+  coverLetters: "/cover-letters",
+  coverLetterNew: "/cover-letters/new",
+  coverLetterDetail: (id: string) => `/cover-letters/${id}` as const,
+  jobs: "/jobs",
   billing: "/billing",
   settings: "/settings",
 } as const;
@@ -27,6 +33,8 @@ export const APP_ROUTES = {
 export const PROTECTED_ROUTE_PREFIXES = [
   "/dashboard",
   "/resumes",
+  "/cover-letters",
+  "/jobs",
   "/billing",
   "/settings",
 ] as const;

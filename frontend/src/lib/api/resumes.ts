@@ -14,7 +14,7 @@ export async function getResume(id: string) {
 }
 
 export async function createResume(body: unknown) {
-  return api.post<ResumeRead>("/resumes/", body);
+  return api.post<ResumeRead>("/resumes", body);
 }
 
 export async function updateResumeFull(id: string, body: unknown) {

@@ -8,6 +8,11 @@ on:
       - synchronize
       - closed
 
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
 env:
   NEON_PROJECT_ID: ${{ vars.NEON_PROJECT_ID }}
   NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
@@ -31,27 +36,29 @@ jobs:
           username: neondb_owner
 
       - name: Post branch info as PR comment
+        if: github.event.action == 'opened' || github.event.action == 'reopened'
         uses: actions/github-script@v7
+        env:
+          NEON_BRANCH_NAME: preview/pr-${{ github.event.number }}
         with:
           script: |
-            const body = `### 🐘 Neon Preview Branch
+            const body = [
+              "### Neon Preview Branch",
+              "",
+              "| Property | Value |",
+              "|----------|-------|",
+              `| **Branch** | \`${process.env.NEON_BRANCH_NAME}\` |`,
+              "| **Host** | `See Neon console` |",
+              "",
+              "This branch will be deleted when the PR is closed.",
+            ].join("\n");
 
-            | Property | Value |
-            |----------|-------|
-            | **Branch** | \`preview/pr-${{ github.event.number }}\` |
-            | **Host**   | \`${{ steps.create-branch.outputs.db_url_with_pooler && 'created' || 'see Neon console' }}\` |
-
-            This branch will be deleted when the PR is closed.`;
-
-            // Only comment once (on open), not on every push
-            if (context.payload.action === 'opened' || context.payload.action === 'reopened') {
-              await github.rest.issues.createComment({
-                issue_number: context.issue.number,
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                body
-              });
-            }
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body,
+            });
 
   delete-branch:
     if: github.event.action == 'closed'

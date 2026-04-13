@@ -3,13 +3,13 @@
 import Link from "next/link";
 import { ExternalLink, FileStack, Receipt } from "lucide-react";
 
+import { ApiTokenCallout } from "@/components/system/api-token-callout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageSection } from "@/components/ui/page-section";
 import { TableSkeleton } from "@/components/ui/table-skeleton";
 import { useExportHistory, usePaymentList } from "@/hooks/use-billing";
-import { ApiError } from "@/lib/api/client";
 import { APP_ROUTES } from "@/lib/auth/routes";
 import { formatMoneyCents } from "@/lib/format-money";
 import { cn } from "@/lib/utils";
@@ -45,8 +45,8 @@ export function BillingDashboard() {
   const payments = usePaymentList(0, 50);
   const exports = useExportHistory(0, 50);
 
-  const payErr = payments.error instanceof ApiError ? payments.error.message : null;
-  const expErr = exports.error instanceof ApiError ? exports.error.message : null;
+  const payErr = payments.error instanceof Error ? payments.error.message : null;
+  const expErr = exports.error instanceof Error ? exports.error.message : null;
 
   return (
     <PageSection
@@ -55,6 +55,8 @@ export function BillingDashboard() {
       description="Stripe receipts and generated PDFs for your workspace."
     >
       <div className="space-y-8">
+        <ApiTokenCallout />
+
         <Card className="glass-panel border-white/[0.09]">
           <CardHeader className="flex flex-row items-start gap-3 space-y-0 pb-2">
             <div className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-card/80 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.45)]">
