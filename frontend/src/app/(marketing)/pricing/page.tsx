@@ -17,7 +17,7 @@ import { CtaSection } from "@/components/marketing/cta-section";
 export const metadata: Metadata = {
   title: "Pricing",
   description:
-    "Transparent ResumeForge pricing — draft for free, pay when you export a premium PDF.",
+    "ResumeForge AI pricing: build and iterate for free; pay once per resume when you unlock PDF export via Stripe.",
 };
 
 export default function PricingPage() {
@@ -32,11 +32,11 @@ export default function PricingPage() {
               Pricing
             </Badge>
             <h1 className="font-heading text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
-              Invest in the <span className="text-gradient-brand">moment you ship</span>
+              Pay when you <span className="text-gradient-brand">ship the PDF</span>
             </h1>
             <p className="mx-auto mt-5 max-w-2xl text-lg text-muted-foreground sm:text-xl">
-              Build and iterate without a subscription wall. When your story is ready, unlock a
-              production PDF with the layout you chose — one resume at a time.
+              Drafting, preview, AI assist, tailoring, cover letters, and tracking stay on the house. Checkout unlocks
+              print-ready PDFs for one resume at a time — amount shown clearly in Stripe before you confirm.
             </p>
             <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
               <Button size="lg" asChild>
@@ -52,12 +52,12 @@ export default function PricingPage() {
 
       <SectionShell
         eyebrow="Plans"
-        title="Choose your runway"
-        subtitle="Every tier includes the full editor and template switching — differences are about export rights and team operations."
+        title="Two clear stages"
+        subtitle="Everything except file export is included while you work. Export unlock is per resume, not per month."
         align="center"
         className="!pt-16"
       >
-        <div className="grid gap-6 lg:grid-cols-3">
+        <div className="mx-auto grid max-w-4xl gap-6 md:grid-cols-2">
           {PRICING_PREVIEW_PLANS.map((plan) => (
             <div
               key={plan.name}
@@ -69,7 +69,7 @@ export default function PricingPage() {
             >
               {plan.highlighted ? (
                 <div className="absolute right-4 top-4 rounded-full border border-primary/40 bg-primary/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary">
-                  Most popular
+                  At checkout
                 </div>
               ) : null}
               <div className="flex h-full flex-col p-6 sm:p-8">
@@ -87,16 +87,8 @@ export default function PricingPage() {
                     </li>
                   ))}
                 </ul>
-                <Button
-                  className="mt-10 w-full"
-                  variant={plan.highlighted ? "default" : "outline"}
-                  asChild
-                >
-                  <Link
-                    href={plan.name === "Teams" ? "/login" : AUTH_ROUTES.signup}
-                  >
-                    {plan.cta}
-                  </Link>
+                <Button className="mt-10 w-full" variant={plan.highlighted ? "default" : "outline"} asChild>
+                  <Link href={AUTH_ROUTES.signup}>{plan.cta}</Link>
                 </Button>
               </div>
             </div>
@@ -106,8 +98,8 @@ export default function PricingPage() {
 
       <SectionShell
         eyebrow="Compare"
-        title="Feature snapshot"
-        subtitle="A quick view of what unlocks at each tier — see export and collaboration at a glance."
+        title="What changes after unlock"
+        subtitle="You keep the full workspace either way — export adds file generation you can repeat for that resume."
         className="border-t border-white/5 bg-background/40 !pt-20"
       >
         <PricingComparisonTable />
@@ -122,7 +114,7 @@ export default function PricingPage() {
             Billing & <span className="text-gradient-brand">policies</span>
           </>
         }
-        subtitle="Straight answers on exports, refunds, and team plans."
+        subtitle="Exports, Stripe checkout, AI behavior, and how we talk about refunds."
         className="!pt-20"
       />
 

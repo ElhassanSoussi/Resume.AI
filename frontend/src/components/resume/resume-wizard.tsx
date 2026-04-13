@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Control } from "react-hook-form";
 import { FormProvider, useFieldArray, useForm, Controller } from "react-hook-form";
 import { Loader2, Plus, Trash2 } from "lucide-react";
@@ -24,7 +24,13 @@ import { WIZARD_STEP_COUNT, validateWizardStep } from "@/lib/resume/wizard-steps
 import { cn } from "@/lib/utils";
 import { resumeCreateSchema, type ResumeCreateFormValues } from "@/lib/validation/resume-schema";
 import { ApiError } from "@/lib/api/client";
+import { ANALYTICS_EVENTS, track } from "@/lib/analytics/track";
+import { consumeFirstResumeAnalyticsSlot } from "@/lib/analytics/first-resume";
 import { TemplatePicker } from "@/components/resume/template-picker";
+import {
+  loadWorkspaceCareerPrefs,
+  suggestedTemplateKey,
+} from "@/lib/onboarding/workspace-preferences";
 
 const STEP_TITLES = [
   "Title & template",
@@ -59,9 +65,12 @@ function BulletsEditor({
               "focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
               "dark:bg-input/30",
             )}
+            placeholder={
+              "Led cross-functional initiative that improved…\nBuilt or launched…\nStreamlined or reduced…"
+            }
             value={Array.isArray(field.value) ? field.value.join("\n") : ""}
             onChange={(e) => field.onChange(e.target.value.split("\n"))}
-            aria-invalid={fieldState.invalid}
+            aria-invalid={fieldState.invalid ? "true" : undefined}
           />
           {fieldState.error ? (
             <p className="text-xs text-destructive">{fieldState.error.message}</p>
@@ -93,9 +102,10 @@ function SkillItemsEditor({
               "focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
               "dark:bg-input/30",
             )}
+            placeholder={"SQL\nPython\nUser research\nRoadmapping"}
             value={Array.isArray(field.value) ? field.value.join("\n") : ""}
             onChange={(e) => field.onChange(e.target.value.split("\n"))}
-            aria-invalid={fieldState.invalid}
+            aria-invalid={fieldState.invalid ? "true" : undefined}
           />
           {fieldState.error ? (
             <p className="text-xs text-destructive">{fieldState.error.message}</p>
@@ -117,7 +127,7 @@ export function ResumeWizard() {
     mode: "onChange",
   });
 
-  const { control, handleSubmit, getValues, watch } = form;
+  const { control, handleSubmit, getValues, watch, reset } = form;
 
   const expArray = useFieldArray({ control, name: "experiences" });
   const eduArray = useFieldArray({ control, name: "educations" });
@@ -156,12 +166,35 @@ export function ResumeWizard() {
     setStepError(null);
     createMut.mutate(toResumeCreateBody(parsed.data), {
       onSuccess: (data) => {
+        track(ANALYTICS_EVENTS.RESUME_CREATED, { resume_id: data.id });
+        if (consumeFirstResumeAnalyticsSlot()) {
+          track(ANALYTICS_EVENTS.FIRST_RESUME_CREATED, { resume_id: data.id });
+        }
         router.push(APP_ROUTES.resumeEdit(data.id));
       },
     });
   });
 
   const templateKey = watch("template_key");
+  const title = watch("title");
+
+  useEffect(() => {
+    const prefs = loadWorkspaceCareerPrefs();
+    if (!prefs?.completedAt) return;
+    const nextTemplate = suggestedTemplateKey(prefs);
+    const current = getValues();
+    reset({
+      ...current,
+      template_key: nextTemplate,
+      title:
+        current.title?.trim() !== ""
+          ? current.title
+          : prefs.target_role?.trim()
+            ? `${prefs.target_role.trim()} — Resume`
+            : current.title,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- one-time merge from local career prefs
+  }, []);
 
   return (
     <FormProvider {...form}>

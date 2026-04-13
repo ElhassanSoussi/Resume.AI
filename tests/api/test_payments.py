@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, PropertyMock, patch
 from uuid import uuid4
 
 import pytest
 from httpx import AsyncClient
 
+from app.core.config import settings
+from app.core.exceptions import BadRequestException
 from app.schemas.payment import CreateCheckoutSessionResponse, ResumePaymentStatusResponse
 
 API = "/api/v1/payments"
@@ -15,7 +17,14 @@ API = "/api/v1/payments"
 
 @pytest.mark.asyncio
 async def test_webhook_missing_signature_returns_400(client: AsyncClient) -> None:
-    response = await client.post(API + "/webhook", content=b"{}")
+    with (
+        patch.object(type(settings), "stripe_webhook_config_errors", PropertyMock(return_value=[])),
+        patch(
+            "app.api.v1.routers.payments.stripe_service.verify_webhook_event",
+            side_effect=BadRequestException(detail="Missing Stripe-Signature header."),
+        ),
+    ):
+        response = await client.post(API + "/webhook", content=b"{}")
     assert response.status_code == 400
     detail = response.json()["detail"].lower()
     assert "signature" in detail or "webhook" in detail or "configured" in detail
@@ -32,9 +41,10 @@ async def test_create_checkout_session_delegates_to_service(client: AsyncClient)
             payment_id=pid,
         )
     )
-    with patch(
-        "app.api.v1.routers.payments.PaymentService"
-    ) as MockSvc:
+    with (
+        patch.object(type(settings), "stripe_checkout_config_errors", PropertyMock(return_value=[])),
+        patch("app.api.v1.routers.payments.PaymentService") as MockSvc,
+    ):
         MockSvc.return_value.create_checkout_session = mock_resp
         response = await client.post(
             API + "/create-checkout-session",

@@ -25,6 +25,8 @@ class JobApplication(BaseModel):
     job_description: Mapped[str | None] = mapped_column(Text, nullable=True)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     applied_date: Mapped[PyDate | None] = mapped_column(Date, nullable=True)
+    follow_up_date: Mapped[PyDate | None] = mapped_column(Date, nullable=True)
+    job_posting_url: Mapped[str | None] = mapped_column(String(2000), nullable=True)
     resume_version_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("resume_versions.id", ondelete="SET NULL"),

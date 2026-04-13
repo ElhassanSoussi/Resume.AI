@@ -13,6 +13,13 @@ class HealthResponse(BaseModel):
     version: str
 
 
+class ReadinessResponse(BaseModel):
+    status: str
+    environment: str
+    version: str
+    database: bool
+
+
 class MessageResponse(BaseModel):
     message: str
 

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Sparkles, Wand2 } from "lucide-react";
+import { ArrowRight, Briefcase, Eye, FileText, Loader2, Sparkles, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ import { PageSection } from "@/components/ui/page-section";
 import { Textarea } from "@/components/ui/textarea";
 import { useTailorResume } from "@/hooks/use-resume-versions";
 import { APP_ROUTES } from "@/lib/auth/routes";
+import { ANALYTICS_EVENTS, track } from "@/lib/analytics/track";
 
 type Props = {
   resumeId: string;
@@ -34,6 +35,7 @@ export function ResumeTailorPanel({ resumeId, resumeTitle }: Props) {
     }
     try {
       const res = await tailor.mutateAsync({ job_description: jobDesc, label });
+      track(ANALYTICS_EVENTS.TAILOR_USED, { resume_id: resumeId });
       setResult({
         label: res.version.label,
         ats_notes: (res.version.snapshot as Record<string, unknown>).ats_notes as string | undefined,
@@ -119,6 +121,9 @@ export function ResumeTailorPanel({ resumeId, resumeTitle }: Props) {
                   <p className="text-sm font-medium text-green-400">
                     Version &ldquo;{result.label}&rdquo; saved
                   </p>
+                  <p className="mt-1 text-xs text-green-400/70">
+                    Your original draft is untouched. The tailored version is saved separately.
+                  </p>
                 </div>
                 {result.ats_notes && (
                   <div className="space-y-1.5">
@@ -128,13 +133,44 @@ export function ResumeTailorPanel({ resumeId, resumeTitle }: Props) {
                     <p className="text-sm leading-relaxed text-foreground/80">{result.ats_notes}</p>
                   </div>
                 )}
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => router.push(APP_ROUTES.resumeVersions(resumeId))}
-                >
-                  View all versions
-                </Button>
+                <div className="space-y-1.5">
+                  <p className="text-[0.72rem] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                    Next steps
+                  </p>
+                  <div className="flex flex-col gap-2">
+                    <Button
+                      variant="default"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => router.push(APP_ROUTES.resumePreview(resumeId))}
+                    >
+                      <Eye className="mr-2 size-4" />
+                      Preview resume
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => router.push(APP_ROUTES.resumeVersions(resumeId))}
+                    >
+                      View all versions
+                    </Button>
+                    <Button variant="ghost" size="sm" className="w-full" asChild>
+                      <a href={APP_ROUTES.coverLetterNew}>
+                        <FileText className="mr-2 size-4" />
+                        Generate cover letter
+                        <ArrowRight className="ml-auto size-4" />
+                      </a>
+                    </Button>
+                    <Button variant="ghost" size="sm" className="w-full" asChild>
+                      <a href={APP_ROUTES.jobs}>
+                        <Briefcase className="mr-2 size-4" />
+                        Add to job tracker
+                        <ArrowRight className="ml-auto size-4" />
+                      </a>
+                    </Button>
+                  </div>
+                </div>
               </div>
             )}
           </CardContent>

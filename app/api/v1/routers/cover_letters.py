@@ -112,6 +112,7 @@ async def generate_cover_letter(
         job_description=payload.job_description,
         company_name=payload.company_name,
         target_role=payload.target_role,
+        tone=payload.tone or "professional",
     )
 
     letter = await CoverLetterService(session).create_from_ai(

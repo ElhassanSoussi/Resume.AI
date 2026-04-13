@@ -2,13 +2,20 @@
 
 import { usePathname } from "next/navigation";
 
-import { getAppPageMeta } from "@/lib/navigation/app-page-meta";
+import {
+  archetypeMainClasses,
+  archetypeMainXPadding,
+  DEFAULT_PAGE_ARCHETYPE,
+} from "@/lib/layout/page-archetype";
+import { getAppPageMeta, PAGE_WIDTH_CLASSES } from "@/lib/navigation/app-page-meta";
 import { AppHeader } from "@/components/layout/app-header";
 import { cn } from "@/lib/utils";
 
 export function AppLayoutFrame({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const meta = getAppPageMeta(pathname);
+  const widthClass = PAGE_WIDTH_CLASSES[meta.width ?? "standard"];
+  const archetype = meta.archetype ?? DEFAULT_PAGE_ARCHETYPE;
 
   return (
     <div className="flex min-w-0 flex-1 flex-col">
@@ -21,11 +28,16 @@ export function AppLayoutFrame({ children }: { children: React.ReactNode }) {
       >
         Skip to content
       </a>
-      <AppHeader title={meta.title} description={meta.description} />
+      <AppHeader title={meta.title} description={meta.description} widthClass={widthClass} />
       <main
         id="main-content"
         tabIndex={-1}
-        className="mx-auto w-full max-w-6xl flex-1 scroll-mt-4 px-4 py-8 sm:px-8 sm:py-10"
+        className={cn(
+          "mx-auto w-full flex-1 scroll-mt-4",
+          archetypeMainXPadding(archetype),
+          archetypeMainClasses(archetype),
+          widthClass,
+        )}
       >
         {children}
       </main>

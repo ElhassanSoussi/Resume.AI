@@ -15,13 +15,13 @@ export function PricingPreviewSection() {
       eyebrow="Pricing"
       title={
         <>
-          Start free. <span className="text-gradient-brand">Pay to export.</span>
+          Start free. <span className="text-gradient-brand">Pay once to export.</span>
         </>
       }
-      subtitle="No surprise limits in the editor — you unlock PDF when you’re ready to ship to recruiters."
+      subtitle="No subscription wall on drafting. When your story is ready, unlock PDF export for that resume — checkout shows the price before you pay."
       className="border-t border-white/5"
     >
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2">
         {PRICING_PREVIEW_PLANS.map((plan, i) => (
           <FadeIn key={plan.name} delay={i * 0.05}>
             <div
@@ -33,7 +33,7 @@ export function PricingPreviewSection() {
             >
               {plan.highlighted ? (
                 <div className="absolute right-4 top-4 rounded-full border border-primary/40 bg-primary/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary">
-                  Popular
+                  At send time
                 </div>
               ) : null}
               <div className="flex h-full flex-col p-6 sm:p-8">
@@ -51,18 +51,8 @@ export function PricingPreviewSection() {
                     </li>
                   ))}
                 </ul>
-                <Button
-                  className="mt-8 w-full"
-                  variant={plan.highlighted ? "default" : "outline"}
-                  asChild
-                >
-                  <Link
-                    href={
-                      plan.name === "Teams" ? AUTH_ROUTES.login : AUTH_ROUTES.signup
-                    }
-                  >
-                    {plan.cta}
-                  </Link>
+                <Button className="mt-8 w-full" variant={plan.highlighted ? "default" : "outline"} asChild>
+                  <Link href={AUTH_ROUTES.signup}>{plan.cta}</Link>
                 </Button>
               </div>
             </div>
@@ -71,7 +61,7 @@ export function PricingPreviewSection() {
       </div>
       <FadeIn className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row" delay={0.1}>
         <Button variant="link" asChild>
-          <Link href={MARKETING_ROUTES.pricing}>Compare plans in detail</Link>
+          <Link href={MARKETING_ROUTES.pricing}>Full pricing & FAQ</Link>
         </Button>
       </FadeIn>
     </SectionShell>

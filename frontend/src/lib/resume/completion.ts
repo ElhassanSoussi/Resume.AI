@@ -3,7 +3,7 @@ import type { ResumeFullUpdateFormValues } from "@/lib/validation/resume-schema"
 /** Rough completion estimate for the editor progress bar (0–100). */
 export function resumeCompletionPercent(values: ResumeFullUpdateFormValues): number {
   let score = 0;
-  const parts = 6;
+  const parts = 7;
 
   if (values.title?.trim()) score += 1;
   if (values.template_key) score += 1;
@@ -12,6 +12,7 @@ export function resumeCompletionPercent(values: ResumeFullUpdateFormValues): num
   if (values.summary?.body?.trim()) score += 1;
   if (values.experiences?.length) score += 1;
   if (values.educations?.length) score += 1;
+  if (values.skills?.some((s) => s.category?.trim() && s.items?.some((i) => i.trim()))) score += 1;
 
   return Math.round((score / parts) * 100);
 }

@@ -17,6 +17,8 @@ class JobApplicationCreate(BaseModel):
     job_description: str | None = Field(None, max_length=20000)
     notes: str | None = Field(None, max_length=10000)
     applied_date: date | None = None
+    follow_up_date: date | None = None
+    job_posting_url: str | None = Field(None, max_length=2000)
     resume_version_id: uuid.UUID | None = None
     cover_letter_id: uuid.UUID | None = None
 
@@ -28,6 +30,8 @@ class JobApplicationUpdate(BaseModel):
     job_description: str | None = Field(None, max_length=20000)
     notes: str | None = Field(None, max_length=10000)
     applied_date: date | None = None
+    follow_up_date: date | None = None
+    job_posting_url: str | None = Field(None, max_length=2000)
     resume_version_id: uuid.UUID | None = None
     cover_letter_id: uuid.UUID | None = None
 
@@ -41,6 +45,8 @@ class JobApplicationRead(BaseModel):
     job_description: str | None
     notes: str | None
     applied_date: date | None
+    follow_up_date: date | None
+    job_posting_url: str | None
     resume_version_id: uuid.UUID | None
     cover_letter_id: uuid.UUID | None
     created_at: datetime

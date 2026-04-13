@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { FileText, Loader2, Sparkles, Wand2 } from "lucide-react";
 import { toast } from "sonner";
@@ -13,7 +13,8 @@ import { Label } from "@/components/ui/label";
 import { PageSection } from "@/components/ui/page-section";
 import { useGenerateCoverLetter, useUpdateCoverLetter } from "@/hooks/use-cover-letters";
 import { APP_ROUTES } from "@/lib/auth/routes";
-import type { CoverLetter } from "@/lib/types/cover-letter";
+import { ANALYTICS_EVENTS, track } from "@/lib/analytics/track";
+import type { CoverLetter, CoverLetterTone } from "@/lib/types/cover-letter";
 import type { ResumeListItem } from "@/lib/types/resume";
 
 type Props = {
@@ -21,8 +22,13 @@ type Props = {
   initial?: CoverLetter;
 };
 
+const TONE_OPTIONS: { value: CoverLetterTone; label: string; hint: string }[] = [
+  { value: "professional", label: "Professional", hint: "Confident, restrained, boardroom-safe" },
+  { value: "direct", label: "Direct", hint: "Efficient sentences, minimal flourish" },
+  { value: "warm", label: "Warm", hint: "Personable while staying credible" },
+];
+
 export function CoverLetterBuilder({ resumes, initial }: Props) {
-  // All hooks must be declared unconditionally before any early return.
   const router = useRouter();
   const generate = useGenerateCoverLetter();
   const update = useUpdateCoverLetter(initial?.id ?? "");
@@ -33,8 +39,14 @@ export function CoverLetterBuilder({ resumes, initial }: Props) {
   const [jobDesc, setJobDesc] = useState(initial?.job_description ?? "");
   const [title, setTitle] = useState(initial?.title ?? "Cover Letter");
   const [body, setBody] = useState(initial?.body ?? "");
+  const [tone, setTone] = useState<CoverLetterTone>("professional");
 
   const isEditing = Boolean(initial);
+
+  const resumeTitle = useMemo(
+    () => resumes.find((r) => r.id === resumeId)?.title ?? "Selected resume",
+    [resumeId, resumes],
+  );
 
   if (resumes.length === 0) {
     return (
@@ -62,10 +74,20 @@ export function CoverLetterBuilder({ resumes, initial }: Props) {
         target_role: role || null,
         job_description: jobDesc,
         title,
+        tone,
       });
       setBody(res.cover_letter.body);
-      toast.success("Cover letter generated!");
-      if (!isEditing) {
+      track(ANALYTICS_EVENTS.COVER_LETTER_CREATED, {
+        cover_letter_id: res.cover_letter.id,
+        resume_id: resumeId,
+      });
+      if (isEditing) {
+        toast.success("New draft saved to your library.", {
+          description: "The API creates a fresh letter each time. Older drafts stay listed until you remove them.",
+        });
+        router.replace(APP_ROUTES.coverLetterDetail(res.cover_letter.id));
+      } else {
+        toast.success("Cover letter generated!");
         router.push(APP_ROUTES.coverLetterDetail(res.cover_letter.id));
       }
     } catch (err) {
@@ -81,6 +103,7 @@ export function CoverLetterBuilder({ resumes, initial }: Props) {
         title,
         company_name: company.trim() || null,
         target_role: role.trim() || null,
+        job_description: jobDesc.trim() || null,
       });
       toast.success("Cover letter saved.");
     } catch (err) {
@@ -92,16 +115,24 @@ export function CoverLetterBuilder({ resumes, initial }: Props) {
     <PageSection
       eyebrow="Cover Letters"
       title={isEditing ? title : "New Cover Letter"}
-      description="Generate a tailored draft from your resume and the role, then refine the final version before you send it."
+      description="A strong letter connects two roles: yours (from the resume) and theirs (from the posting). AI tightens language — it does not invent employers, titles, or credentials you did not provide."
     >
       <div className="grid gap-6 lg:grid-cols-[1fr_1.4fr]">
-        {/* Left: inputs */}
         <div className="space-y-5">
           <Card className="glass-panel">
             <CardHeader>
               <CardTitle className="text-sm font-semibold">Letter brief</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              <div className="rounded-lg border border-white/10 bg-white/[0.03] p-3 text-xs leading-relaxed text-muted-foreground">
+                <p className="font-medium text-foreground/90">What the draft should do</p>
+                <ul className="mt-2 list-inside list-disc space-y-1">
+                  <li>Open with why this role and company fit your direction.</li>
+                  <li>Bridge 1–2 proof points from your resume to their needs.</li>
+                  <li>Close with a calm call to action — no hard sell.</li>
+                </ul>
+              </div>
+
               <div className="space-y-1.5">
                 <Label htmlFor="cl-title">Title</Label>
                 <Input
@@ -149,6 +180,28 @@ export function CoverLetterBuilder({ resumes, initial }: Props) {
                 />
               </div>
 
+              <div className="space-y-2">
+                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Tone</p>
+                <div className="grid gap-2 sm:grid-cols-3">
+                  {TONE_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setTone(opt.value)}
+                      className={[
+                        "flex flex-col rounded-lg border px-2.5 py-2 text-left text-xs transition",
+                        tone === opt.value
+                          ? "border-primary/60 bg-primary/10 ring-1 ring-primary/20"
+                          : "border-white/10 bg-card/40 hover:border-white/20",
+                      ].join(" ")}
+                    >
+                      <span className="font-medium text-foreground">{opt.label}</span>
+                      <span className="mt-0.5 text-[0.68rem] text-muted-foreground">{opt.hint}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div className="space-y-1.5">
                 <Label htmlFor="cl-jd">Job description</Label>
                 <p className="text-xs text-muted-foreground">
@@ -164,26 +217,42 @@ export function CoverLetterBuilder({ resumes, initial }: Props) {
                 />
               </div>
 
-              <Button
-                className="w-full"
-                onClick={() => void handleGenerate()}
-                disabled={generate.isPending}
-              >
+              <Button className="w-full" onClick={() => void handleGenerate()} disabled={generate.isPending}>
                 {generate.isPending ? (
                   <Loader2 className="mr-2 size-4 animate-spin" />
                 ) : (
                   <Wand2 className="mr-2 size-4" />
                 )}
-                {generate.isPending ? "Generating draft…" : "Generate draft"}
+                {generate.isPending ? "Generating draft…" : isEditing && body ? "Regenerate from brief" : "Generate draft"}
               </Button>
             </CardContent>
           </Card>
         </div>
 
-        {/* Right: editor */}
         <div className="space-y-4">
+          {(company.trim() || role.trim()) && (
+            <div className="flex flex-wrap gap-2 text-[0.72rem] text-muted-foreground">
+              <span className="rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1">
+                Resume: <span className="text-foreground/90">{resumeTitle}</span>
+              </span>
+              {company.trim() ? (
+                <span className="rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1">
+                  Company: <span className="text-foreground/90">{company.trim()}</span>
+                </span>
+              ) : null}
+              {role.trim() ? (
+                <span className="rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1">
+                  Role: <span className="text-foreground/90">{role.trim()}</span>
+                </span>
+              ) : null}
+              <span className="rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1">
+                Tone: <span className="text-foreground/90">{TONE_OPTIONS.find((t) => t.value === tone)?.label}</span>
+              </span>
+            </div>
+          )}
+
           <Card className="glass-panel">
-            <CardHeader className="flex flex-row items-center gap-2">
+            <CardHeader className="flex flex-row flex-wrap items-center gap-2">
               <FileText className="size-4 text-primary" />
               <CardTitle className="text-sm font-semibold">Draft editor</CardTitle>
               {generate.isPending && (
@@ -193,7 +262,7 @@ export function CoverLetterBuilder({ resumes, initial }: Props) {
                 </span>
               )}
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-3">
               <Textarea
                 rows={22}
                 value={body}
@@ -201,19 +270,22 @@ export function CoverLetterBuilder({ resumes, initial }: Props) {
                 placeholder="Your draft appears here after generation. Edit freely before you send it."
                 className="resize-none font-mono text-sm"
               />
+              {isEditing && body ? (
+                <p className="text-xs text-muted-foreground">
+                  Regenerate replaces the draft text using your current brief and tone. Save when you are happy with edits.
+                </p>
+              ) : null}
             </CardContent>
           </Card>
 
-          {isEditing && body && (
-            <div className="flex justify-end">
+          {isEditing && body ? (
+            <div className="flex flex-wrap justify-end gap-2">
               <Button onClick={() => void handleSave()} disabled={update.isPending}>
-                {update.isPending ? (
-                  <Loader2 className="mr-2 size-4 animate-spin" />
-                ) : null}
+                {update.isPending ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}
                 Save changes
               </Button>
             </div>
-          )}
+          ) : null}
         </div>
       </div>
     </PageSection>

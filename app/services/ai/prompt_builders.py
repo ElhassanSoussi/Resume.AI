@@ -185,14 +185,20 @@ def user_optimize_resume(
     return json.dumps(payload, ensure_ascii=False)
 
 
-def system_generate_cover_letter() -> str:
+def system_generate_cover_letter(*, tone: str = "professional") -> str:
+    tone_line = {
+        "professional": "Tone: confident, professional, and restrained — no hype or exclamation marks.",
+        "direct": "Tone: direct and efficient — short sentences, minimal flourish, still courteous.",
+        "warm": "Tone: warm and personable while staying credible — conversational but not casual slang.",
+    }.get(tone, "Tone: confident, professional, and restrained — no hype or exclamation marks.")
     return f"""You are a professional cover letter writer.
 {_JSON_ONLY_RULES}
 {_QUALITY_RULES}
 The JSON object must have exactly one key: "body" (string).
 Write a compelling, concise 3-paragraph cover letter under 400 words.
 Use only information present in the resume snapshot and job description.
-Keep the tone credible, specific, and human — never generic or overblown."""
+Keep the tone credible, specific, and human — never generic or overblown.
+{tone_line}"""
 
 
 def user_generate_cover_letter(
@@ -201,9 +207,11 @@ def user_generate_cover_letter(
     job_description: str,
     company_name: str | None,
     target_role: str | None,
+    tone: str = "professional",
 ) -> str:
     payload: dict[str, Any] = {
         "task": "generate_cover_letter",
+        "tone": tone,
         "context": _resume_context_payload(resume_snapshot),
         "resume": resume_snapshot,
         "job_description": job_description,

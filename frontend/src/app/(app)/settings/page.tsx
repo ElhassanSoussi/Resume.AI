@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 
+import { BetaFeedbackCard } from "@/components/settings/beta-feedback-card";
+import { SettingsCareerPreferences } from "@/components/settings/settings-career-preferences";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,123 +13,120 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PageSection } from "@/components/ui/page-section";
+import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "Settings",
 };
 
-function SettingsField({
-  id,
-  label,
-  placeholder,
-  helper,
-  type = "text",
-}: {
-  id: string;
-  label: string;
-  placeholder: string;
-  helper: string;
-  type?: string;
-}) {
-  return (
-    <div className="space-y-2">
-      <Label htmlFor={id}>{label}</Label>
-      <Input id={id} name={id} type={type} autoComplete={id} placeholder={placeholder} />
-      <p className="text-sm text-muted-foreground">{helper}</p>
-    </div>
-  );
-}
+const selectClass = cn(
+  "h-9 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none",
+  "focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
+  "dark:bg-input/30",
+);
 
 export default function SettingsPage() {
   return (
     <PageSection
       eyebrow="Account"
       title="Settings"
-      description="Profile and workspace preferences are kept lightweight for now, with room for billing and account controls to grow."
+      description="Profile defaults and workspace preferences that apply across your resumes and exports."
+      className="space-y-4"
     >
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_260px]">
         <div className="space-y-6">
+          <SettingsCareerPreferences />
+
           <Card className="glass-panel border-white/[0.08]">
             <CardHeader>
               <CardTitle>Profile</CardTitle>
               <CardDescription>
-                The basics that identify you across resumes, exports, and future collaboration features.
+                Account-level identity used across exports, receipts, and workspace activity.
               </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-5 sm:grid-cols-2">
-              <SettingsField
-                id="display"
-                label="Display name"
-                placeholder="Alex Rivera"
-                helper="Used in future account-level activity and collaboration surfaces."
-              />
-              <SettingsField
-                id="email"
-                label="Account email"
-                type="email"
-                placeholder="you@company.com"
-                helper="This should match the email you use to sign in."
-              />
+              <div className="space-y-2">
+                <Label htmlFor="display">Display name</Label>
+                <Input id="display" name="display" autoComplete="name" placeholder="Alex Rivera" />
+                <p className="text-xs text-muted-foreground">Visible on account-level surfaces and future collaboration.</p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Account email</Label>
+                <Input id="email" name="email" type="email" autoComplete="email" placeholder="you@company.com" />
+                <p className="text-xs text-muted-foreground">Should match the email you use to sign in.</p>
+              </div>
             </CardContent>
           </Card>
 
           <Card className="glass-panel border-white/[0.08]">
             <CardHeader>
-              <CardTitle>Preferences</CardTitle>
+              <CardTitle>Defaults</CardTitle>
               <CardDescription>
-                Small defaults that help keep your workspace predictable and professional.
+                These preferences set starting values for new resumes. You can always override them per resume.
               </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-5 sm:grid-cols-2">
-              <SettingsField
-                id="default-template"
-                label="Preferred designed template"
-                placeholder="Modern Professional"
-                helper="Reference-only for now while template defaults stay resume-specific."
-              />
-              <SettingsField
-                id="export-mode"
-                label="Preferred export mode"
-                placeholder="Designed Export"
-                helper="ATS Export remains available whenever you need the safest structure."
-              />
+              <div className="space-y-2">
+                <Label htmlFor="default-template">Default designed template</Label>
+                <select id="default-template" aria-label="Default designed template" className={selectClass} defaultValue="modern_professional">
+                  <option value="modern_professional">Modern Professional</option>
+                  <option value="corporate_minimal">Corporate Minimal</option>
+                  <option value="crisp_tech">Crisp Tech</option>
+                  <option value="graduate_starter">Graduate Starter</option>
+                  <option value="executive_serif">Executive Serif</option>
+                  <option value="elegant_executive">Elegant Executive</option>
+                  <option value="creative_clean">Creative Clean</option>
+                </select>
+                <p className="text-xs text-muted-foreground">Applied when creating a new resume. Existing resumes keep their selection.</p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="export-mode">Default export mode</Label>
+                <select id="export-mode" aria-label="Default export mode" className={selectClass} defaultValue="designed">
+                  <option value="designed">Designed Export</option>
+                  <option value="ats">ATS Export</option>
+                </select>
+                <p className="text-xs text-muted-foreground">Sets the initial export mode in the editor. Switch anytime before generating.</p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="writing-mode">Default AI writing mode</Label>
+                <select id="writing-mode" aria-label="Default AI writing mode" className={selectClass} defaultValue="balanced">
+                  <option value="balanced">Balanced</option>
+                  <option value="concise">Concise</option>
+                  <option value="achievement_focused">Achievement-focused</option>
+                  <option value="ats_focused">ATS-focused</option>
+                </select>
+                <p className="text-xs text-muted-foreground">Controls the default tone for AI rewrites. Adjustable per session in the editor.</p>
+              </div>
             </CardContent>
           </Card>
 
-          <div className="flex justify-end">
+          <div className="flex items-center justify-between gap-4">
+            <p className="text-xs text-muted-foreground">
+              Preferences will be persisted once account settings are fully connected.
+            </p>
             <Button type="button" className="btn-inset">
               Save preferences
             </Button>
           </div>
         </div>
 
-        <div className="space-y-6">
-          <Card className="glass-panel border-white/[0.08]">
-            <CardHeader>
-              <CardTitle>Workspace notes</CardTitle>
-              <CardDescription>What is already live today and what is reserved for future account controls.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
-                <p className="font-medium text-foreground">Profile hooks are lightweight</p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Resume data is saved inside each resume today. This page is for broader account-level preferences.
-                </p>
-              </div>
-              <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
-                <p className="font-medium text-foreground">Billing settings will grow here</p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Payment history and export history already live in Billing. Future invoice and account controls can slot in here cleanly.
-                </p>
-              </div>
-              <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
-                <p className="font-medium text-foreground">Keep details current</p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Consistent account information makes exports, outreach, and future admin surfaces feel more trustworthy.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+        <div className="space-y-4">
+          <BetaFeedbackCard />
+
+          <aside className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-3">
+            <p className="text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Scope</p>
+            <ul className="mt-2 space-y-2 text-[0.72rem] leading-snug text-muted-foreground">
+              <li>
+                <span className="font-medium text-foreground/90">Per resume</span> — contact, experience, and skills live on each document.
+              </li>
+              <li>
+                <span className="font-medium text-foreground/90">Billing</span> — receipts and PDFs live under Payments & exports.
+              </li>
+              <li>
+                <span className="font-medium text-foreground/90">Privacy</span> — content is used for your documents and AI improvements only.
+              </li>
+            </ul>
+          </aside>
         </div>
       </div>
     </PageSection>

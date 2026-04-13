@@ -8,205 +8,247 @@ export type FaqItem = {
 
 export const LANDING_FAQ: FaqItem[] = [
   {
-    id: "export",
-    question: "How does PDF export billing work?",
+    id: "free-vs-paid",
+    question: "What is free vs paid?",
     answer:
-      "You can draft and preview for free. When you’re ready to download a recruiter-ready PDF, you unlock a one-time export for that resume. Team plans bundle seats and invoicing separately.",
+      "The full editor, live preview, template switching, AI writing assist, tailoring into saved versions, cover letter drafts, and job tracker are included while you work. You pay once per resume when you want to unlock Stripe checkout for that document’s PDF export. After unlock, you can regenerate PDFs for that resume without paying again.",
+  },
+  {
+    id: "export-modes",
+    question: "What is the difference between ATS Export and Designed Export?",
+    answer:
+      "ATS Export renders a parser-friendly single-column layout (ATS Classic) for strict application portals. Designed Export uses the premium white-paper template you picked in the editor — best when a human reads the PDF first (email, referrals, or direct sends). You choose per generation; both are included in the same resume unlock.",
   },
   {
     id: "ai",
-    question: "Will AI rewrite my experience without my voice?",
+    question: "Does AI invent jobs or credentials?",
     answer:
-      "ResumeForge suggests tighter phrasing and structure — you approve every change. Nothing ships to your final resume until you accept it.",
+      "No. AI suggests tighter phrasing, clearer bullets, and better structure from what you already wrote. You review every change in the editor. Nothing is presented as fact until you keep it.",
   },
   {
     id: "templates",
-    question: "Can I switch templates after I write content?",
+    question: "Can I change templates after I write content?",
     answer:
-      "Yes. Your sections stay intact; the layout engine reflows into Minimal Pro, Modern Sidebar, or Executive instantly so you can A/B test presentation.",
+      "Yes. Your sections stay intact; you can switch among the designed templates in the library, preview instantly, and export in ATS or Designed mode when you are ready.",
   },
   {
     id: "data",
-    question: "Who owns my data?",
+    question: "How is my data used?",
     answer:
-      "You do. We’re built to sync with your account on our API — export or delete your resumes when you want, subject to your workspace policy.",
+      "Your resume content stays tied to your account for editing, preview, export, and the features you use. Payments are processed by Stripe — we do not store your card. Use the product in good faith for your own career materials.",
   },
   {
-    id: "ats",
-    question: "Are exports ATS-friendly?",
+    id: "refund",
+    question: "What if export fails?",
     answer:
-      "PDFs use clean hierarchy and readable type — optimized for both human reviewers and parsing. For strict ATS portals, use the structured text sections we generate.",
+      "If a technical issue prevents a successful PDF after a completed payment, contact support within 7 days with the resume and approximate time — we will re-run generation or make it right.",
   },
 ];
 
 export const PRICING_FAQ_EXTRA: FaqItem[] = [
   {
-    id: "refund",
-    question: "Do you offer refunds on export credits?",
+    id: "stripe-price",
+    question: "How much is the export unlock?",
     answer:
-      "If a technical issue prevents a successful export, contact support within 7 days and we’ll make it right — including re-running the pipeline or crediting your account.",
-  },
-  {
-    id: "teams",
-    question: "How does Teams billing work?",
-    answer:
-      "We invoice annually with a minimum seat count. You’ll get a shared workspace, consolidated billing, and optional SAML — talk to us for a tailored quote.",
+      "The amount is whatever you configure in Stripe for the single-resume product — you will see it clearly on the checkout page before you pay. The unlock applies to that one resume and includes both ATS and Designed PDF generation after purchase.",
   },
 ];
+
+/** Outcome pillars — same story as the product (landing + app). */
+export const STORY_PILLARS = [
+  {
+    id: "build",
+    title: "Build a credible resume",
+    body: "Guided creation or full editor: contact, summary, experience, skills, and education in a white-paper layout you control.",
+  },
+  {
+    id: "ai",
+    title: "Optimize, don’t invent",
+    body: "AI tightens summaries, bullets, and skills from your facts. You stay in the loop — nothing ships until you are satisfied.",
+  },
+  {
+    id: "tailor",
+    title: "Tailor to real postings",
+    body: "Paste a job description; get a saved version aligned to that role while your master draft stays intact.",
+  },
+  {
+    id: "letters",
+    title: "Cover letters that match the role",
+    body: "Generate a structured draft from your resume plus the posting, choose tone, then edit before you send.",
+  },
+  {
+    id: "track",
+    title: "Know where you applied",
+    body: "Lightweight tracker for company, role, status, dates, posting link, notes, and optional links to drafts.",
+  },
+  {
+    id: "export",
+    title: "Export and apply with confidence",
+    body: "Readiness guidance, ATS or Designed PDF, Stripe checkout, then download — with clear next steps after export.",
+  },
+] as const;
 
 export const HOW_IT_WORKS_STEPS = [
   {
     step: "01",
-    title: "Import or start fresh",
+    title: "Create your resume",
     description:
-      "Paste an old resume, upload notes, or begin from a guided blank — sections stay modular.",
+      "Start from the guided builder or jump into the editor. Autosave keeps progress as you fill sections.",
   },
   {
     step: "02",
-    title: "Refine with AI assist",
+    title: "Tune with AI (optional)",
     description:
-      "Tighten summaries, sharpen bullets, and align tone to the role — always editable, never final until you say so.",
+      "Rewrite summary, optimize bullets, or run a full pass — always from your facts, always editable.",
   },
   {
     step: "03",
-    title: "Pick a premium layout",
+    title: "Tailor per employer",
     description:
-      "Swap between three studio templates with one click. Preview pixel-perfect before you pay to export.",
+      "Save role-specific versions from a job description so you can send targeted PDFs without duplicating work by hand.",
   },
   {
     step: "04",
-    title: "Export PDF with confidence",
+    title: "Letters + applications",
     description:
-      "Unlock a one-time high-fidelity PDF when you’re ready — crisp type, print-safe margins, shareable link metadata.",
+      "Draft a cover letter from the same resume and posting, then log the application with status and follow-up dates.",
+  },
+  {
+    step: "05",
+    title: "Preview, unlock, export",
+    description:
+      "Check white-paper preview, review export readiness, pay once per resume in Stripe, then generate ATS or Designed PDFs.",
   },
 ] as const;
 
+/** Showcase cards align with real template families in the product. */
 export const TEMPLATE_SHOWCASE = [
   {
-    id: "minimal-pro",
-    name: "Minimal Pro",
-    tagline: "Editorial clarity",
+    id: "ats_classic",
+    name: "ATS Classic",
+    tagline: "Portal-first",
     description:
-      "Single-column rhythm, strong typographic hierarchy, and breathing room for senior ICs and designers.",
-    gradientClass: "bg-gradient-to-br from-sky-500/25 via-background to-cyan-500/10",
+      "Single-column, restrained typography — the path you use with ATS Export for uploads that parse before a human sees you.",
+    gradientClass: "bg-gradient-to-br from-slate-500/25 via-background to-sky-500/10",
   },
   {
-    id: "modern-sidebar",
-    name: "Modern Sidebar",
-    tagline: "Skills-forward",
+    id: "modern_professional",
+    name: "Modern Professional",
+    tagline: "Recruiter balance",
     description:
-      "A structured rail for contact & skills, narrative body for impact — ideal for engineers and PMs.",
+      "Clean hierarchy and spacing for most business, product, and operations roles — ideal for Designed Export.",
     gradientClass: "bg-gradient-to-br from-violet-500/20 via-background to-teal-500/15",
   },
   {
-    id: "executive",
-    name: "Executive",
-    tagline: "Boardroom tone",
+    id: "executive_serif",
+    name: "Executive Serif",
+    tagline: "Leadership tone",
     description:
-      "Weighted header, two-column story, leadership-forward — built for directors and principals.",
+      "Formal serif presentation for senior ICs and leaders who want calm authority on the page.",
     gradientClass: "bg-gradient-to-br from-amber-500/15 via-background to-slate-500/20",
   },
 ] as const;
 
 export const PRICING_PREVIEW_PLANS = [
   {
-    name: "Starter",
+    name: "While you build",
     price: "$0",
-    cadence: "forever",
-    blurb: "Build, edit, and preview — pay only when you export.",
-    features: ["Full editor & sections", "Live preview", "Template switching"],
+    cadence: "no subscription",
+    blurb: "Full editor, preview, AI assist, tailoring, cover letters, and job tracker — pay only when you unlock PDF export for a resume.",
+    features: [
+      "Unlimited drafts and template changes",
+      "AI optimization (you approve edits)",
+      "Tailored versions + cover letter drafts",
+      "Application tracker",
+    ],
     cta: "Start free",
     highlighted: false,
   },
   {
-    name: "Export Pro",
-    price: "$12",
-    cadence: "per resume PDF",
-    blurb: "Unlock print-ready PDFs with premium layouts.",
-    features: ["WeasyPrint-grade PDFs", "3 layout engines", "Metadata for downloads"],
-    cta: "Get export access",
+    name: "PDF export unlock",
+    price: "Once",
+    cadence: "per resume · at checkout",
+    blurb:
+      "Checkout shows the exact price before you pay. Unlock covers that resume only, then generate ATS or Designed PDFs whenever you need — including after edits.",
+    features: [
+      "ATS Export + Designed Export for that resume",
+      "Print-ready white-paper PDFs",
+      "Regenerate after edits at no extra charge",
+      "Receipts in Billing",
+    ],
+    cta: "Get started",
     highlighted: true,
-  },
-  {
-    name: "Teams",
-    price: "Custom",
-    cadence: "annual",
-    blurb: "Shared workspace for agencies, bootcamps, and career services.",
-    features: ["Seat management", "Invoicing", "Priority support"],
-    cta: "Talk to sales",
-    highlighted: false,
   },
 ] as const;
 
-/** Feature rows for pricing comparison table (✓ / —). */
+/** Feature rows for pricing comparison (Starter vs Export unlock). */
 export const PLAN_COMPARISON = [
-  { feature: "Editor & sections", starter: true, pro: true, teams: true },
-  { feature: "Live preview", starter: true, pro: true, teams: true },
-  { feature: "All 3 PDF templates", starter: false, pro: true, teams: true },
-  { feature: "One-time PDF export", starter: false, pro: true, teams: true },
-  { feature: "Priority render queue", starter: false, pro: true, teams: true },
-  { feature: "Shared workspace & seats", starter: false, pro: false, teams: true },
-  { feature: "Invoicing & SAML (optional)", starter: false, pro: false, teams: true },
+  { feature: "Editor, preview, templates", starter: true, export: true },
+  { feature: "AI writing & optimization", starter: true, export: true },
+  { feature: "Tailor + version history", starter: true, export: true },
+  { feature: "Cover letters + job tracker", starter: true, export: true },
+  { feature: "PDF export (ATS + Designed)", starter: false, export: true },
+  { feature: "Unlimited PDF regenerations after unlock", starter: false, export: true },
 ] as const;
 
 export const EXAMPLE_DEEP_DIVES = [
   {
-    id: "minimal-pro",
-    name: "Minimal Pro",
-    audience: "Designers, writers, senior ICs",
+    id: "ats_classic",
+    name: "ATS Classic",
+    audience: "High-volume applications, strict portals",
     summary:
-      "A single strong column with editorial rhythm — headline contact, tight summary, and experience blocks that breathe.",
+      "When parsers gate your first impression, this layout keeps structure predictable: standard flow, readable type, minimal decoration.",
     bullets: [
-      "Optimized for skimming: clear job titles, dates, and impact lines",
-      "Typography-forward: lets hierarchy do the heavy lifting",
-      "Best when your story is craft-led, not credential-stacked",
+      "Pair with ATS Export in the product for the safest upload path",
+      "Single column so parsers see headings and bullets in order",
+      "Still human-readable when a recruiter opens the same file",
     ],
   },
   {
-    id: "modern-sidebar",
-    name: "Modern Sidebar",
-    audience: "Engineers, data, product",
+    id: "modern_professional",
+    name: "Modern Professional",
+    audience: "Most business, product, and ops roles",
     summary:
-      "Skills and tools live in a dedicated rail; the main column carries narrative depth and metrics.",
+      "The default designed path for people who send PDFs to humans first — balanced spacing, clear hierarchy, white-paper polish.",
     bullets: [
-      "Great for keyword-rich skill lists without cluttering body copy",
-      "Sidebar keeps contact + links always visible in PDF",
-      "Balances ATS-friendly structure with human-readable flow",
+      "Designed Export preserves your chosen template and spacing",
+      "Strong for referrals, networking, and direct email",
+      "Switch templates without rewriting content",
     ],
   },
   {
-    id: "executive",
-    name: "Executive",
-    audience: "Directors, VPs, consulting leads",
+    id: "executive_serif",
+    name: "Executive Serif",
+    audience: "Leadership, strategy, senior IC",
     summary:
-      "Weighted header band and two-column body tuned for leadership arcs and org-scale outcomes.",
+      "Serif-forward presentation with a quieter, high-trust tone — room for scope, mandates, and long-form impact where you need it.",
     bullets: [
-      "Emphasizes scope: teams, budgets, regions, transformation",
-      "Boardroom-appropriate tone — still scannable in under 60 seconds",
-      "Pairs well with long-form impact bullets",
+      "Weighted header and formal rhythm for senior readers",
+      "Pairs with achievement-style bullets you already own",
+      "Export when readiness checks look solid",
     ],
   },
 ] as const;
 
 export const EXAMPLE_USE_CASES = [
   {
-    title: "Pivoting roles",
-    body: "Keep one master resume; tune summaries per vertical without rebuilding sections.",
+    title: "Same resume, two destinations",
+    body: "Generate ATS PDF for the portal and a Designed PDF for the hiring manager — one unlock, two modes.",
   },
   {
-    title: "Contract → FTE",
-    body: "Highlight outcomes across engagements with consistent date formatting.",
+    title: "One master, many employers",
+    body: "Tailor versions from the job description; keep dates and titles consistent while wording flexes per role.",
   },
   {
-    title: "Leadership promos",
-    body: "Executive layout spotlights org size, mandates, and measurable change.",
+    title: "From apply to follow-up",
+    body: "Log the company and role, attach posting URL and dates, then return after interviews without digging through email.",
   },
 ] as const;
 
 export const BEFORE_AFTER = {
   before: {
-    title: "Before",
-    subtitle: "Dense blocks recruiters skim past",
+    title: "Generic duties",
+    subtitle: "What recruiters skim past in seconds",
     lines: [
       "Responsible for many things on the team and worked with cross-functional partners.",
       "Helped improve the system and did various tasks related to project goals.",
@@ -214,12 +256,12 @@ export const BEFORE_AFTER = {
     ],
   },
   after: {
-    title: "After",
-    subtitle: "Outcome-led bullets with signal",
+    title: "Clear outcomes",
+    subtitle: "Same career — evidence a reader can remember",
     lines: [
-      "Led migration of billing core to event-driven architecture — cut reconciliation time by 38%.",
-      "Partnered with Design + Legal to ship consent flows in 6 weeks across 4 markets.",
-      "Ran weekly exec readouts with product & GTM; drove roadmap alignment on Q3 priorities.",
+      "Led billing platform migration to event-driven architecture — cut reconciliation time by 38%.",
+      "Partnered with Design and Legal to ship consent flows in six weeks across four markets.",
+      "Ran weekly exec readouts with product and GTM; aligned roadmap on Q3 priorities.",
     ],
   },
 } as const;

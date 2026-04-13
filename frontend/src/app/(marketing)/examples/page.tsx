@@ -17,7 +17,7 @@ import { Badge } from "@/components/ui/badge";
 export const metadata: Metadata = {
   title: "Examples",
   description:
-    "Explore ResumeForge layout engines — Minimal Pro, Modern Sidebar, and Executive — built for different career stories.",
+    "ResumeForge layout examples — ATS Classic, Modern Professional, Executive Serif — and when to use ATS vs Designed export.",
 };
 
 export default function ExamplesPage() {
@@ -30,12 +30,12 @@ export default function ExamplesPage() {
               Examples
             </Badge>
             <h1 className="max-w-4xl font-heading text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
-              Layouts engineered for{" "}
-              <span className="text-gradient-brand">how you’re evaluated</span>
+              Layouts built for{" "}
+              <span className="text-gradient-brand">who reads you first</span>
             </h1>
             <p className="mt-6 max-w-2xl text-lg text-muted-foreground sm:text-xl">
-              Three premium engines share one content model — swap visuals without rewriting. Pick
-              the frame that matches your arc: craft-led, technical, or executive.
+              Parser-first portals, recruiter inboxes, and leadership readers do not want the same PDF. Same content
+              model — pick a designed template for humans, or ATS Export when the upload box matters more.
             </p>
             <div className="mt-10 flex flex-wrap gap-4">
               <Button size="lg" asChild>
@@ -50,9 +50,9 @@ export default function ExamplesPage() {
       </div>
 
       <SectionShell
-        eyebrow="Engines"
-        title="Meet the three layouts"
-        subtitle="Each template is tuned for PDF export — spacing, type scale, and section order are production-tested."
+        eyebrow="Templates"
+        title="Three anchors in the library"
+        subtitle="These families map to real options in the app — preview before you pay, then export in ATS or Designed mode."
         className="!pt-16"
       >
         <div className="grid gap-8 lg:grid-cols-3">

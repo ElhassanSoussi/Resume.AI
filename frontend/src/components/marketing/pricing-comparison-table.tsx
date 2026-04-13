@@ -21,13 +21,12 @@ export function PricingComparisonTable() {
   return (
     <FadeIn>
       <div className="overflow-x-auto rounded-2xl border border-white/10 bg-card/30 backdrop-blur-sm">
-        <table className="w-full min-w-[640px] text-sm">
+        <table className="w-full min-w-[520px] text-sm">
           <thead>
             <tr className="border-b border-white/10 text-left">
               <th className="px-4 py-4 font-heading text-foreground">Feature</th>
-              <th className="px-4 py-4 text-center font-heading">Starter</th>
-              <th className="px-4 py-4 text-center font-heading text-primary">Export Pro</th>
-              <th className="px-4 py-4 text-center font-heading">Teams</th>
+              <th className="px-4 py-4 text-center font-heading">While you build</th>
+              <th className="px-4 py-4 text-center font-heading text-primary">After PDF unlock</th>
             </tr>
           </thead>
           <tbody>
@@ -35,8 +34,7 @@ export function PricingComparisonTable() {
               <tr key={row.feature} className="border-b border-white/5 last:border-0">
                 <td className="px-4 py-3 text-muted-foreground">{row.feature}</td>
                 <Cell ok={row.starter} />
-                <Cell ok={row.pro} />
-                <Cell ok={row.teams} />
+                <Cell ok={row.export} />
               </tr>
             ))}
           </tbody>

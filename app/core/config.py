@@ -22,7 +22,9 @@ def _is_placeholder(value: str) -> bool:
 def _is_stripe_placeholder(value: str, *, exact_placeholders: set[str]) -> bool:
     normalized = value.strip()
     lowered = normalized.lower()
-    return lowered == "" or "..." in normalized or lowered in exact_placeholders
+    if lowered == "" or "..." in normalized or "replace" in lowered:
+        return True
+    return lowered in exact_placeholders
 
 
 class Settings(BaseSettings):

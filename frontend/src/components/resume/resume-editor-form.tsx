@@ -4,13 +4,14 @@ import Link from "next/link";
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import type { Control } from "react-hook-form";
 import { FormProvider, useFieldArray, useForm, useWatch, Controller } from "react-hook-form";
-import { Loader2, Plus, Sparkles, Trash2 } from "lucide-react";
+import { ArrowRight, Eye, Loader2, Plus, Sparkles, Trash2, Wand2 } from "lucide-react";
 
 import { CheckboxField, TextAreaField, TextField } from "@/components/forms/form-fields";
 import { ApiTokenCallout } from "@/components/system/api-token-callout";
 import { ResumeAiPanel } from "@/components/resume/resume-ai-panel";
 import { ResumeCoachPanel } from "@/components/resume/resume-coach-panel";
 import { ResumeExportSection } from "@/components/resume/resume-export-section";
+import { ResumeReadinessPanel } from "@/components/resume/resume-readiness-panel";
 import { TemplatePicker } from "@/components/resume/template-picker";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -27,7 +28,13 @@ import {
   DEFAULT_RESUME_TEMPLATE,
   normalizeResumeTemplateKey,
 } from "@/lib/resume/constants";
+import { ANALYTICS_EVENTS, track } from "@/lib/analytics/track";
+import { shouldFireResumeCompletedEvent } from "@/lib/analytics/resume-complete";
 import { resumeCompletionPercent } from "@/lib/resume/completion";
+import {
+  loadWorkspaceCareerPrefs,
+  suggestedWritingMode,
+} from "@/lib/onboarding/workspace-preferences";
 import {
   getDefaultFullResumeFormValues,
   resumeReadToFormValues,
@@ -66,7 +73,7 @@ function BulletsEditor({
             placeholder={"Led cross-functional initiative that improved...\nBuilt or launched...\nStreamlined or reduced..."}
             value={Array.isArray(field.value) ? field.value.join("\n") : ""}
             onChange={(e) => field.onChange(e.target.value.split("\n"))}
-            aria-invalid={fieldState.invalid}
+            aria-invalid={fieldState.invalid ? "true" : undefined}
           />
           {fieldState.error ? (
             <p className="text-xs text-destructive">{fieldState.error.message}</p>
@@ -101,7 +108,7 @@ function SkillItemsEditor({
             placeholder={"SQL\nPython\nUser research\nRoadmapping"}
             value={Array.isArray(field.value) ? field.value.join("\n") : ""}
             onChange={(e) => field.onChange(e.target.value.split("\n"))}
-            aria-invalid={fieldState.invalid}
+            aria-invalid={fieldState.invalid ? "true" : undefined}
           />
           {fieldState.error ? (
             <p className="text-xs text-destructive">{fieldState.error.message}</p>
@@ -138,12 +145,22 @@ export function ResumeEditorForm({ resumeId }: { resumeId: string }) {
     if (!data) return;
     reset(resumeReadToFormValues(data));
     hydrated.current = true;
+    const prefs = loadWorkspaceCareerPrefs();
+    if (prefs?.completedAt) {
+      setWritingMode(suggestedWritingMode(prefs));
+    }
   }, [data, reset]);
 
   const watched = useWatch({ control });
   const completion = resumeCompletionPercent(
     (watched as ResumeFullUpdateFormValues) ?? getDefaultFullResumeFormValues(),
   );
+
+  useEffect(() => {
+    if (completion < 100) return;
+    if (!shouldFireResumeCompletedEvent(resumeId)) return;
+    track(ANALYTICS_EVENTS.RESUME_COMPLETED, { resume_id: resumeId });
+  }, [completion, resumeId]);
 
   const saveValid = useCallback(() => {
     if (!hydrated.current) return;
@@ -209,7 +226,7 @@ export function ResumeEditorForm({ resumeId }: { resumeId: string }) {
 
   return (
     <FormProvider {...form}>
-      <div className="space-y-6">
+      <div className="space-y-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-1">
             <p className="text-xs text-muted-foreground">Autosaves a few seconds after you stop typing.</p>
@@ -243,11 +260,17 @@ export function ResumeEditorForm({ resumeId }: { resumeId: string }) {
         ) : null}
 
         <ResumeAiPanel
+          resumeId={resumeId}
           getValues={getValues}
           setValue={setValue}
           ai={ai}
           writingMode={writingMode}
           onWritingModeChange={setWritingMode}
+        />
+
+        <ResumeReadinessPanel
+          resumeId={resumeId}
+          values={(watched as ResumeFullUpdateFormValues) ?? getDefaultFullResumeFormValues()}
         />
 
         <Suspense fallback={<Skeleton className="h-28 w-full rounded-xl" />}>
@@ -530,26 +553,49 @@ export function ResumeEditorForm({ resumeId }: { resumeId: string }) {
           </Button>
         </section>
 
-        <div className="flex flex-wrap gap-3">
-          <Button type="button" variant="secondary" asChild>
-            <Link href={APP_ROUTES.resumePreview(resumeId)}>Preview</Link>
-          </Button>
-          <Button
-            type="button"
-            onClick={() => {
-              saveValid();
-            }}
-            disabled={updateMut.isPending}
-          >
-            {updateMut.isPending ? (
-              <>
-                <Loader2 className="mr-2 size-4 animate-spin" />
-                Saving…
-              </>
-            ) : (
-              "Save now"
-            )}
-          </Button>
+        <div className="space-y-4 rounded-xl border border-white/10 bg-white/[0.02] p-5">
+          <div className="space-y-1">
+            <p className="font-heading text-sm font-semibold text-foreground">Ready to move forward?</p>
+            <p className="text-sm text-muted-foreground">
+              Save your progress, then preview, tailor for a role, or export a recruiter-ready PDF.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <Button
+              type="button"
+              onClick={() => {
+                saveValid();
+              }}
+              disabled={updateMut.isPending}
+            >
+              {updateMut.isPending ? (
+                <>
+                  <Loader2 className="mr-2 size-4 animate-spin" />
+                  Saving…
+                </>
+              ) : (
+                "Save now"
+              )}
+            </Button>
+            <Button type="button" variant="secondary" asChild>
+              <Link href={APP_ROUTES.resumePreview(resumeId)}>
+                <Eye className="mr-2 size-4" />
+                Preview
+              </Link>
+            </Button>
+            <Button type="button" variant="outline" asChild>
+              <Link href={APP_ROUTES.resumeTailor(resumeId)}>
+                <Wand2 className="mr-2 size-4" />
+                Tailor for a role
+              </Link>
+            </Button>
+            <Button type="button" variant="ghost" asChild>
+              <Link href={APP_ROUTES.coverLetterNew}>
+                Cover letter
+                <ArrowRight className="ml-2 size-4" />
+              </Link>
+            </Button>
+          </div>
         </div>
       </div>
     </FormProvider>

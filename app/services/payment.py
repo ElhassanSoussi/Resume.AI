@@ -368,6 +368,11 @@ class PaymentService:
                 "stripe_payment_intent_id": str(pi) if pi else payment.stripe_payment_intent_id,
             },
         )
+        logger.info(
+            "payment.checkout_completed",
+            payment_id=str(payment.id),
+            checkout_session_id=sid,
+        )
 
     async def _on_checkout_session_expired(self, session: dict[str, Any]) -> None:
         sid = session.get("id")
@@ -398,3 +403,8 @@ class PaymentService:
             payment = await self._payments.get_by_stripe_intent(str(iid))
         if payment:
             await self._update_payment_record(payment.id, {"status": PAYMENT_STATUS_FAILED})
+            logger.warning(
+                "payment.intent_failed",
+                payment_id=str(payment.id),
+                payment_intent_id=str(iid),
+            )

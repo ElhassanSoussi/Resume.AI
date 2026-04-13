@@ -17,7 +17,7 @@ Production-ready FastAPI backend for **ResumeForge AI**, a SaaS that helps users
 
 ## Project Structure
 
-```
+```text
 app/
 ├── api/v1/             # Versioned API routers
 │   ├── router.py       # Aggregate v1 router
@@ -61,7 +61,11 @@ All endpoints are served under `/api/v1`. The health check is at `GET /api/v1/he
 
 ## Environment Variables
 
-See [`.env.example`](.env.example) for the full list of configuration variables.
+See [`.env.example`](.env.example) for local development. For production, see [`PRODUCTION_ENV.md`](PRODUCTION_ENV.md) and [`DEPLOYMENT.md`](DEPLOYMENT.md).
+
+**Launch operations:** [`STAGING_DEPLOYMENT.md`](STAGING_DEPLOYMENT.md), [`STAGING_SMOKE_TESTS.md`](STAGING_SMOKE_TESTS.md), [`PRODUCTION_PRELAUNCH.md`](PRODUCTION_PRELAUNCH.md), [`LAUNCH_DAY_RUNBOOK.md`](LAUNCH_DAY_RUNBOOK.md), [`POST_LAUNCH_PLAYBOOK.md`](POST_LAUNCH_PLAYBOOK.md).
+
+**Closed beta & learning:** [`BETA_VALIDATION_PACK.md`](BETA_VALIDATION_PACK.md) (readiness, user tests, funnel debug, feedback templates, triage, day 1/3/7 review). **Live beta execution:** [`BETA_LIVE_OPERATIONS.md`](BETA_LIVE_OPERATIONS.md) (issue log, debugging loop, patch/deploy, daily funnel checks, success gates).
 
 ## Testing
 

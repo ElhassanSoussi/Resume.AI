@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Menu } from "lucide-react";
 
 import { APP_ROUTES } from "@/lib/auth/routes";
+import { cn } from "@/lib/utils";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Sheet,
@@ -17,12 +18,13 @@ import { SidebarNav } from "@/components/layout/app-sidebar";
 type AppHeaderProps = {
   title: string;
   description?: string;
+  widthClass?: string;
 };
 
-export function AppHeader({ title, description }: AppHeaderProps) {
+export function AppHeader({ title, description, widthClass = "max-w-[1120px]" }: AppHeaderProps) {
   return (
     <header className="sticky top-0 z-40 border-b border-white/[0.07] bg-background/85 shadow-[0_8px_32px_-16px_rgba(0,0,0,0.35)] backdrop-blur-xl backdrop-saturate-150">
-      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4 sm:h-16 sm:px-8">
+      <div className={cn("mx-auto flex h-14 items-center justify-between gap-4 px-4 sm:h-16 sm:px-6", widthClass)}>
         <div className="min-w-0 md:hidden">
           <Sheet>
             <SheetTrigger

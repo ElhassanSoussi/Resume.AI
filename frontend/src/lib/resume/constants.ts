@@ -32,6 +32,15 @@ const TEMPLATE_ALIASES: Record<string, ResumeTemplateId> = {
   elegant: "elegant_executive",
 };
 
+/** Tab / filter order for template browsing (subset may be empty if catalog changes). */
+export const RESUME_TEMPLATE_FAMILY_ORDER = [
+  "ATS",
+  "Professional",
+  "Early Career",
+  "Leadership",
+  "Creative",
+] as const;
+
 export const RESUME_TEMPLATE_LIBRARY: Array<{
   value: ResumeTemplateId;
   label: string;
@@ -41,93 +50,94 @@ export const RESUME_TEMPLATE_LIBRARY: Array<{
   family: string;
   atsSafe: boolean;
 }> = [
-  {
-    value: "ats_classic",
-    label: "ATS Classic",
-    description: "Single-column, restrained, and optimized for application portals.",
-    bestFor: "High-volume applications and ATS uploads",
-    tone: "Most parsing-safe",
-    family: "ATS",
-    atsSafe: true,
-  },
-  {
-    value: "compact_ats",
-    label: "Compact ATS",
-    description: "Dense one-column layout with tighter spacing for experienced candidates with more detail.",
-    bestFor: "ATS uploads when you need more content on one page",
-    tone: "Efficient and structured",
-    family: "ATS",
-    atsSafe: true,
-  },
-  {
-    value: "modern_professional",
-    label: "Modern Professional",
-    description: "Clean hierarchy, balanced spacing, and recruiter-safe polish.",
-    bestFor: "Most business, product, and operations roles",
-    tone: "Balanced and versatile",
-    family: "Professional",
-    atsSafe: false,
-  },
-  {
-    value: "corporate_minimal",
-    label: "Corporate Minimal",
-    description: "Understated, polished, and calm with formal spacing and low-ego presentation.",
-    bestFor: "Consulting, finance, legal-adjacent, and enterprise roles",
-    tone: "Quiet and polished",
-    family: "Professional",
-    atsSafe: false,
-  },
-  {
-    value: "crisp_tech",
-    label: "Crisp Tech",
-    description: "Sharper information density with cleaner metadata alignment for technical roles.",
-    bestFor: "Engineering, data, analytics, and technical product hiring",
-    tone: "Precise and modern",
-    family: "Professional",
-    atsSafe: false,
-  },
-  {
-    value: "graduate_starter",
-    label: "Graduate Starter",
-    description: "Early-career friendly structure that gives education and foundational strengths more support.",
-    bestFor: "Internships, new grads, and early-career transitions",
-    tone: "Guided and credible",
-    family: "Early Career",
-    atsSafe: false,
-  },
-  {
-    value: "executive_serif",
-    label: "Executive Serif",
-    description: "Formal serif presentation with high-trust, boardroom-ready tone.",
-    bestFor: "Leadership, strategy, and senior-level hiring",
-    tone: "Elegant and authoritative",
-    family: "Leadership",
-    atsSafe: false,
-  },
-  {
-    value: "elegant_executive",
-    label: "Elegant Executive",
-    description: "Refined formal layout with stronger metadata structure and premium senior-level calm.",
-    bestFor: "C-suite, VP, GM, and high-trust leadership applications",
-    tone: "Premium and deliberate",
-    family: "Leadership",
-    atsSafe: false,
-  },
-  {
-    value: "creative_clean",
-    label: "Creative Clean",
-    description: "More expressive hierarchy with a clean, readable professional finish.",
-    bestFor: "Startup, marketing, and design-adjacent roles",
-    tone: "Distinct without clutter",
-    family: "Creative",
-    atsSafe: false,
-  },
-];
+    {
+      value: "ats_classic",
+      label: "ATS Classic",
+      description: "Single-column, restrained, and optimized for application portals.",
+      bestFor: "High-volume applications and ATS uploads",
+      tone: "Most parsing-safe",
+      family: "ATS",
+      atsSafe: true,
+    },
+    {
+      value: "compact_ats",
+      label: "Compact ATS",
+      description: "Dense one-column layout with tighter spacing for experienced candidates with more detail.",
+      bestFor: "ATS uploads when you need more content on one page",
+      tone: "Efficient and structured",
+      family: "ATS",
+      atsSafe: true,
+    },
+    {
+      value: "modern_professional",
+      label: "Modern Professional",
+      description: "Clean hierarchy, balanced spacing, and recruiter-safe polish.",
+      bestFor: "Most business, product, and operations roles",
+      tone: "Balanced and versatile",
+      family: "Professional",
+      atsSafe: false,
+    },
+    {
+      value: "corporate_minimal",
+      label: "Corporate Minimal",
+      description: "Understated, polished, and calm with formal spacing and low-ego presentation.",
+      bestFor: "Consulting, finance, legal-adjacent, and enterprise roles",
+      tone: "Quiet and polished",
+      family: "Professional",
+      atsSafe: false,
+    },
+    {
+      value: "crisp_tech",
+      label: "Crisp Tech",
+      description: "Sharper information density with cleaner metadata alignment for technical roles.",
+      bestFor: "Engineering, data, analytics, and technical product hiring",
+      tone: "Precise and modern",
+      family: "Professional",
+      atsSafe: false,
+    },
+    {
+      value: "graduate_starter",
+      label: "Graduate Starter",
+      description: "Early-career friendly structure that gives education and foundational strengths more support.",
+      bestFor: "Internships, new grads, and early-career transitions",
+      tone: "Guided and credible",
+      family: "Early Career",
+      atsSafe: false,
+    },
+    {
+      value: "executive_serif",
+      label: "Executive Serif",
+      description: "Formal serif presentation with high-trust, boardroom-ready tone.",
+      bestFor: "Leadership, strategy, and senior-level hiring",
+      tone: "Elegant and authoritative",
+      family: "Leadership",
+      atsSafe: false,
+    },
+    {
+      value: "elegant_executive",
+      label: "Elegant Executive",
+      description: "Refined formal layout with stronger metadata structure and premium senior-level calm.",
+      bestFor: "C-suite, VP, GM, and high-trust leadership applications",
+      tone: "Premium and deliberate",
+      family: "Leadership",
+      atsSafe: false,
+    },
+    {
+      value: "creative_clean",
+      label: "Creative Clean",
+      description: "More expressive hierarchy with a clean, readable professional finish.",
+      bestFor: "Startup, marketing, and design-adjacent roles",
+      tone: "Distinct without clutter",
+      family: "Creative",
+      atsSafe: false,
+    },
+  ];
 
-export const RESUME_TEMPLATE_OPTIONS = RESUME_TEMPLATE_LIBRARY.map(({ value, label }) => ({
-  value,
-  label,
-})) as const;
+export const RESUME_TEMPLATE_OPTIONS: ReadonlyArray<{ value: ResumeTemplateId; label: string }> =
+  RESUME_TEMPLATE_LIBRARY.map(({ value, label }) => ({
+    value,
+    label,
+  }));
 
 export const EXPORT_MODE_OPTIONS: Array<{
   value: ResumeExportMode;
@@ -135,19 +145,19 @@ export const EXPORT_MODE_OPTIONS: Array<{
   description: string;
   bestFor: string;
 }> = [
-  {
-    value: "ats",
-    label: "ATS Export",
-    description: "Plain white paper, standard headings, and the safest single-column structure.",
-    bestFor: "Best for application portals, parser-heavy systems, and strict uploads.",
-  },
-  {
-    value: "designed",
-    label: "Designed Export",
-    description: "Professional white paper with refined hierarchy, spacing, and stronger visual credibility.",
-    bestFor: "Best for recruiter sharing, referrals, and direct PDF sending.",
-  },
-];
+    {
+      value: "ats",
+      label: "ATS Export",
+      description: "Plain white paper, standard headings, and the safest single-column structure.",
+      bestFor: "Best for application portals, parser-heavy systems, and strict uploads.",
+    },
+    {
+      value: "designed",
+      label: "Designed Export",
+      description: "Professional white paper with refined hierarchy, spacing, and stronger visual credibility.",
+      bestFor: "Best for recruiter sharing, referrals, and direct PDF sending.",
+    },
+  ];
 
 export function normalizeResumeTemplateKey(key: string | undefined | null): ResumeTemplateId {
   const raw = key?.trim().toLowerCase();

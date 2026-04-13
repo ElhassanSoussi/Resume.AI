@@ -1,0 +1,21 @@
+/** Stable analytics event names — see `ANALYTICS.md` at repo root. */
+export const ANALYTICS_EVENTS = {
+  LANDING_CTA_SIGNUP_CLICK: "landing_cta_signup_click",
+  LANDING_CTA_PRICING_CLICK: "landing_cta_pricing_click",
+  LANDING_CTA_SIGNUP_FOOTER: "landing_cta_signup_footer",
+  SIGNUP_STARTED: "signup_started",
+  SIGNUP_COMPLETED: "signup_completed",
+  ONBOARDING_COMPLETED: "onboarding_completed",
+  FIRST_RESUME_CREATED: "first_resume_created",
+  RESUME_CREATED: "resume_created",
+  RESUME_COMPLETED: "resume_completed",
+  AI_OPTIMIZE_USED: "ai_optimize_used",
+  TAILOR_USED: "tailor_used",
+  PREVIEW_OPENED: "preview_opened",
+  EXPORT_UNLOCK_CLICKED: "export_unlock_clicked",
+  CHECKOUT_STARTED: "checkout_started",
+  PAYMENT_SUCCEEDED: "payment_succeeded",
+  PDF_GENERATED: "pdf_generated",
+  COVER_LETTER_CREATED: "cover_letter_created",
+  JOB_APPLICATION_CREATED: "job_application_created",
+} as const;

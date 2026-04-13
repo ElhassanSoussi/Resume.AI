@@ -25,34 +25,35 @@ export function ResumeCoachPanel({ resumeId, values }: Props) {
           Resume coach
         </CardTitle>
         <CardDescription>
-          Practical guidance to strengthen the draft before you tailor, preview, export, and apply.
+          Narrative coaching alongside the checklist-style export readiness card — use both before you tailor, preview,
+          and export.
         </CardDescription>
       </CardHeader>
-      <CardContent className="grid gap-5 xl:grid-cols-[minmax(0,1.2fr)_minmax(280px,0.8fr)]">
-        <div className="space-y-4">
+      <CardContent className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(240px,0.72fr)]">
+        <div className="space-y-3">
           <div>
-            <p className="text-[0.72rem] font-medium uppercase tracking-[0.18em] text-muted-foreground">Improve next</p>
-            <div className="mt-3 space-y-3">
+            <p className="text-[0.68rem] font-medium uppercase tracking-[0.18em] text-muted-foreground">Improve next</p>
+            <div className="mt-2 space-y-2">
               {coach.signals.length ? (
                 coach.signals.map((signal) => (
-                  <div key={`${signal.section}-${signal.title}`} className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
-                    <div className="flex items-start gap-3">
-                      <TriangleAlert className="mt-0.5 size-4 text-amber-300" />
+                  <div key={`${signal.section}-${signal.title}`} className="rounded-xl border border-white/8 bg-white/[0.03] p-3">
+                    <div className="flex items-start gap-2.5">
+                      <TriangleAlert className="mt-0.5 size-3.5 text-amber-300" />
                       <div>
-                        <p className="font-medium text-foreground">{signal.title}</p>
-                        <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{signal.detail}</p>
+                        <p className="text-[0.82rem] font-medium text-foreground">{signal.title}</p>
+                        <p className="mt-0.5 text-[0.76rem] leading-relaxed text-muted-foreground">{signal.detail}</p>
                       </div>
                     </div>
                   </div>
                 ))
               ) : (
-                <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-4">
-                  <div className="flex items-start gap-3">
-                    <CheckCircle2 className="mt-0.5 size-4 text-emerald-300" />
+                <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3">
+                  <div className="flex items-start gap-2.5">
+                    <CheckCircle2 className="mt-0.5 size-3.5 text-emerald-300" />
                     <div>
-                      <p className="font-medium text-foreground">The structure is in a strong place</p>
-                      <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                        This draft looks ready for role tailoring, preview review, and export checks.
+                      <p className="text-[0.82rem] font-medium text-foreground">Structure is strong</p>
+                      <p className="mt-0.5 text-[0.76rem] leading-relaxed text-muted-foreground">
+                        Ready for tailoring, preview, and export.
                       </p>
                     </div>
                   </div>
@@ -63,13 +64,13 @@ export function ResumeCoachPanel({ resumeId, values }: Props) {
 
           {coach.strengths.length ? (
             <div>
-              <p className="text-[0.72rem] font-medium uppercase tracking-[0.18em] text-muted-foreground">Already strong</p>
-              <div className="mt-3 space-y-3">
+              <p className="text-[0.68rem] font-medium uppercase tracking-[0.18em] text-muted-foreground">Already strong</p>
+              <div className="mt-2 space-y-2">
                 {coach.strengths.map((strength) => (
-                  <div key={strength} className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
-                    <div className="flex items-start gap-3">
-                      <CheckCircle2 className="mt-0.5 size-4 text-emerald-300" />
-                      <p className="text-sm leading-relaxed text-muted-foreground">{strength}</p>
+                  <div key={strength} className="rounded-xl border border-white/8 bg-white/[0.03] p-3">
+                    <div className="flex items-start gap-2.5">
+                      <CheckCircle2 className="mt-0.5 size-3.5 text-emerald-300" />
+                      <p className="text-[0.76rem] leading-relaxed text-muted-foreground">{strength}</p>
                     </div>
                   </div>
                 ))}
@@ -78,32 +79,32 @@ export function ResumeCoachPanel({ resumeId, values }: Props) {
           ) : null}
         </div>
 
-        <div className="space-y-4">
-          <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
-            <p className="text-[0.72rem] font-medium uppercase tracking-[0.18em] text-muted-foreground">Workflow</p>
-            <div className="mt-3 flex flex-col gap-2">
+        <div className="space-y-3">
+          <div className="rounded-xl border border-white/8 bg-white/[0.03] p-3">
+            <p className="text-[0.68rem] font-medium uppercase tracking-[0.18em] text-muted-foreground">Workflow</p>
+            <div className="mt-2 flex flex-col gap-1.5">
               <Button variant="outline" size="sm" asChild>
-                <Link href={APP_ROUTES.resumeTailor(resumeId)}>Tailor for a live role</Link>
+                <Link href={APP_ROUTES.resumeTailor(resumeId)}>Tailor for a role</Link>
               </Button>
               <Button variant="outline" size="sm" asChild>
-                <Link href={APP_ROUTES.resumePreview(resumeId)}>Review ATS vs Designed</Link>
+                <Link href={APP_ROUTES.resumePreview(resumeId)}>Preview ATS vs Designed</Link>
               </Button>
               <Button variant="outline" size="sm" asChild>
-                <Link href={APP_ROUTES.coverLetterNew}>Generate a cover letter</Link>
+                <Link href={APP_ROUTES.coverLetterNew}>Cover letter</Link>
               </Button>
               <Button variant="ghost" size="sm" asChild>
                 <Link href={APP_ROUTES.jobs}>
-                  Track the application
-                  <ArrowRight className="ml-2 size-4" />
+                  Track application
+                  <ArrowRight className="ml-1.5 size-3.5" />
                 </Link>
               </Button>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
-            <p className="text-[0.72rem] font-medium uppercase tracking-[0.18em] text-muted-foreground">Editing guidance</p>
-            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-              Strong resumes usually feel specific, restrained, and easy to skim. Use AI to sharpen language, then apply your own judgment before exporting.
+          <div className="rounded-xl border border-white/8 bg-white/[0.03] p-3">
+            <p className="text-[0.68rem] font-medium uppercase tracking-[0.18em] text-muted-foreground">Guidance</p>
+            <p className="mt-1.5 text-[0.76rem] leading-relaxed text-muted-foreground">
+              Strong resumes feel specific and easy to skim. Use AI to sharpen language, then review before exporting.
             </p>
           </div>
         </div>

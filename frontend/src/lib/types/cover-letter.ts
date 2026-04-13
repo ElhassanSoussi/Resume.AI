@@ -37,12 +37,15 @@ export type CoverLetterCreate = {
 
 export type CoverLetterUpdate = Partial<CoverLetterCreate>;
 
+export type CoverLetterTone = "professional" | "direct" | "warm";
+
 export type GenerateCoverLetterRequest = {
   resume_id: string;
   company_name?: string | null;
   target_role?: string | null;
   job_description: string;
   title?: string;
+  tone?: CoverLetterTone;
 };
 
 export type GenerateCoverLetterResponse = {

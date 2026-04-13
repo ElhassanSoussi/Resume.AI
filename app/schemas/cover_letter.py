@@ -70,6 +70,10 @@ class GenerateCoverLetterRequest(BaseModel):
     target_role: str | None = Field(None, max_length=255)
     job_description: str = Field(min_length=10, max_length=20000)
     title: str = Field(default="Cover Letter", max_length=255)
+    tone: str | None = Field(
+        default="professional",
+        pattern="^(professional|direct|warm)$",
+    )
 
 
 class GenerateCoverLetterResponse(BaseModel):

@@ -13,7 +13,7 @@
 ## Secrets
 
 - Never commit `.env`, API keys, or Stripe secrets.
-- Rotate `JWT_SECRET`, Stripe keys, and database credentials on a schedule or after any leak.
+- Rotate `JWT_SECRET_KEY`, Stripe keys, and database credentials on a schedule or after any leak.
 
 ## Payments
 

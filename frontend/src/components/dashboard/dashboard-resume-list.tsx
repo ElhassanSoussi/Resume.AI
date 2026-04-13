@@ -7,12 +7,14 @@ import {
   Briefcase,
   Download,
   FileText,
+  ListOrdered,
   Loader2,
   Plus,
   Sparkles,
   Trash2,
 } from "lucide-react";
 
+import { DashboardWorkspaceOnboarding } from "@/components/dashboard/dashboard-workspace-onboarding";
 import { ResumeCardGridSkeleton } from "@/components/dashboard/resume-card-skeleton";
 import { ApiTokenCallout } from "@/components/system/api-token-callout";
 import { Button } from "@/components/ui/button";
@@ -31,6 +33,11 @@ import { useJobList } from "@/hooks/use-jobs";
 import { useDeleteResume, useResumeList } from "@/hooks/use-resumes";
 import { APP_ROUTES } from "@/lib/auth/routes";
 import { getResumeTemplateMeta } from "@/lib/resume/constants";
+import {
+  hasCompletedWorkspaceOnboarding,
+  loadWorkspaceCareerPrefs,
+  workflowHintsFromPrefs,
+} from "@/lib/onboarding/workspace-preferences";
 
 function formatDate(iso: string) {
   try {
@@ -56,15 +63,15 @@ function StatCard({
   icon: typeof FileText;
 }) {
   return (
-    <Card className="glass-panel-lift border-white/[0.08]">
-      <CardContent className="flex items-start justify-between gap-4 pt-5">
-        <div className="space-y-1">
-          <p className="text-[0.72rem] font-medium uppercase tracking-[0.18em] text-muted-foreground">{label}</p>
-          <p className="font-heading text-3xl font-semibold tracking-tight text-foreground">{value}</p>
-          <p className="text-sm text-muted-foreground">{helper}</p>
+    <Card className="glass-panel border-white/[0.08]">
+      <CardContent className="flex items-start justify-between gap-2 px-3 pt-3 pb-3">
+        <div className="min-w-0 space-y-0.5">
+          <p className="text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground">{label}</p>
+          <p className="font-heading text-xl font-semibold tracking-tight text-foreground">{value}</p>
+          <p className="line-clamp-2 text-[0.7rem] leading-snug text-muted-foreground">{helper}</p>
         </div>
-        <div className="flex size-11 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04]">
-          <Icon className="size-5 text-primary" aria-hidden />
+        <div className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04]">
+          <Icon className="size-3.5 text-primary" aria-hidden />
         </div>
       </CardContent>
     </Card>
@@ -72,6 +79,7 @@ function StatCard({
 }
 
 export function DashboardResumeList() {
+  const [prefEpoch, setPrefEpoch] = useState(0);
   const { data, isLoading, isError, refetch, isFetching } = useResumeList(0, 50);
   const coverLetters = useCoverLetterList(0, 6);
   const jobs = useJobList();
@@ -87,16 +95,25 @@ export function DashboardResumeList() {
   const resumeLabel = total === 1 ? "resume" : "resumes";
   const refreshSuffix = isFetching ? " · refreshing" : "";
 
-  const subtitle = data == null
-    ? "A premium workspace for resumes, exports, applications, and tailored outreach."
-    : `${total} ${resumeLabel}${refreshSuffix}`;
+  const subtitle =
+    data == null
+      ? "Build, tailor, cover letter, track, and export — one narrative from first login to first PDF."
+      : total === 0
+        ? "Create your first resume, then preview, tailor or draft a letter, track applications, and export when the PDF is worth paying for."
+        : `${total} ${resumeLabel}${refreshSuffix} — use the checklist and next steps to reach a confident send.`;
 
   const nextSteps = useMemo(() => {
+    void prefEpoch;
     const steps: Array<{ title: string; body: string; href: string; cta: string }> = [];
+    const prefs = loadWorkspaceCareerPrefs();
+    const hints = workflowHintsFromPrefs(prefs);
     if (total === 0) {
       steps.push({
         title: "Create your first resume",
-        body: "Start with the guided builder, then refine in the editor once the structure is in place.",
+        body:
+          hints[0] && hasCompletedWorkspaceOnboarding()
+            ? `Use the guided builder, then refine in the editor. ${hints[0]}`
+            : "Use the guided builder for structure, then the editor for depth — preview before you ever think about export.",
         href: APP_ROUTES.resumeNew,
         cta: "Start resume",
       });
@@ -104,35 +121,38 @@ export function DashboardResumeList() {
     if (total > 0 && coverLetterCount === 0) {
       steps.push({
         title: "Draft a cover letter",
-        body: "Use your existing resume to generate tailored outreach for a live role.",
+        body: "Same resume + posting text → a structured draft you edit before you send. Tone controls stay in your hands.",
         href: APP_ROUTES.coverLetterNew,
         cta: "New cover letter",
       });
     }
     if (jobCount === 0) {
       steps.push({
-        title: "Track live applications",
-        body: "Keep application status, notes, and momentum in one place as interviews progress.",
+        title: "Track applications",
+        body: "Company, role, status, dates, posting URL, and notes — enough to follow up without running a CRM.",
         href: APP_ROUTES.jobs,
         cta: "Open tracker",
       });
     }
     if (total > 0 && exportCount === 0) {
       steps.push({
-        title: "Export a recruiter-ready PDF",
-        body: "Preview your document, choose ATS or Designed Export, and generate the final version when you are ready.",
+        title: "Unlock PDF export when ready",
+        body: "Preview in the app, read export readiness, then pay once per resume in Stripe for ATS or Designed PDFs — regenerate after edits without paying again.",
         href: items[0] ? APP_ROUTES.resumeEdit(items[0].id) : APP_ROUTES.billing,
-        cta: "Review exports",
+        cta: "Go to editor & export",
       });
     }
     return steps.slice(0, 3);
-  }, [coverLetterCount, exportCount, items, jobCount, total]);
+  }, [coverLetterCount, exportCount, items, jobCount, prefEpoch, total]);
+
+  const prefsHints = workflowHintsFromPrefs(loadWorkspaceCareerPrefs());
 
   return (
     <PageSection
       eyebrow="Workspace"
       title="Command center"
       description={subtitle}
+      className="space-y-4"
       action={
         <Button asChild className="btn-inset">
           <Link href={APP_ROUTES.resumeNew}>
@@ -142,10 +162,69 @@ export function DashboardResumeList() {
         </Button>
       }
     >
-      <div className="space-y-6">
+      <div className="space-y-4">
+        <DashboardWorkspaceOnboarding onPrefsSaved={() => setPrefEpoch((n) => n + 1)} />
         <ApiTokenCallout />
 
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {prefsHints.length > 0 ? (
+          <div className="rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-2.5">
+            <p className="text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Guidance</p>
+            <ul className="mt-1.5 list-inside list-disc space-y-0.5 text-[0.72rem] leading-snug text-muted-foreground">
+              {prefsHints.map((h) => (
+                <li key={h}>{h}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+
+        {total > 0 && items[0] ? (
+          <div className="rounded-lg border border-white/[0.08] bg-card/20 px-3 py-2.5">
+            <div className="flex flex-wrap items-center gap-2">
+              <ListOrdered className="size-3.5 shrink-0 text-primary" aria-hidden />
+              <p className="text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                Path to first send
+              </p>
+            </div>
+            <ol className="mt-2 flex flex-col gap-1.5 text-[0.72rem] leading-snug text-muted-foreground sm:flex-row sm:flex-wrap sm:gap-x-3 sm:gap-y-1">
+              <li className="sm:list-none">
+                <span className="tabular-nums text-muted-foreground/80 sm:mr-1">1.</span>
+                <Link href={APP_ROUTES.resumeEdit(items[0].id)} className="font-medium text-foreground hover:underline">
+                  Finish sections
+                </Link>
+              </li>
+              <li className="sm:list-none">
+                <span className="tabular-nums text-muted-foreground/80 sm:mr-1">2.</span>
+                <Link href={APP_ROUTES.resumePreview(items[0].id)} className="font-medium text-foreground hover:underline">
+                  Preview
+                </Link>
+              </li>
+              <li className="sm:list-none">
+                <span className="tabular-nums text-muted-foreground/80 sm:mr-1">3.</span>
+                <Link href={APP_ROUTES.resumeTailor(items[0].id)} className="font-medium text-foreground hover:underline">
+                  Tailor
+                </Link>
+                <span className="text-muted-foreground/70"> · </span>
+                <Link href={APP_ROUTES.coverLetterNew} className="font-medium text-foreground hover:underline">
+                  Letter
+                </Link>
+              </li>
+              <li className="sm:list-none">
+                <span className="tabular-nums text-muted-foreground/80 sm:mr-1">4.</span>
+                <Link href={APP_ROUTES.jobs} className="font-medium text-foreground hover:underline">
+                  Track
+                </Link>
+              </li>
+              <li className="sm:list-none">
+                <span className="tabular-nums text-muted-foreground/80 sm:mr-1">5.</span>
+                <Link href={APP_ROUTES.resumeEdit(items[0].id)} className="font-medium text-foreground hover:underline">
+                  Export
+                </Link>
+              </li>
+            </ol>
+          </div>
+        ) : null}
+
+        <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
           <StatCard
             label="Resumes"
             value={isLoading ? "—" : String(total)}
@@ -186,16 +265,14 @@ export function DashboardResumeList() {
           </Card>
         ) : null}
 
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(320px,0.95fr)]">
-          <div className="space-y-4">
+        <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(260px,300px)]">
+          <div className="space-y-3">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-[0.72rem] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                <p className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
                   Resume library
                 </p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Edit, preview, tailor, and export from one place.
-                </p>
+                <p className="mt-0.5 text-[0.78rem] text-muted-foreground">Editor · preview · tailor · versions · export</p>
               </div>
               {items.length > 0 ? (
                 <Button asChild variant="ghost" size="sm">
@@ -212,8 +289,8 @@ export function DashboardResumeList() {
             {!isLoading && !isError && items.length === 0 ? (
               <EmptyState
                 icon={FileText}
-                title="Your workspace is ready"
-                description="Create your first resume to unlock previews, exports, tailored cover letters, and application tracking."
+                title="Start with one resume"
+                description="The guided builder sets structure in minutes. Then you will use the same workspace for preview, AI tuning, tailoring, cover letters, the job tracker, and PDF export when you are ready to pay once for that file."
               >
                 <Button asChild>
                   <Link href={APP_ROUTES.resumeNew}>Create a resume</Link>
@@ -222,25 +299,25 @@ export function DashboardResumeList() {
             ) : null}
 
             {!isLoading && !isError && items.length > 0 ? (
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-2 sm:grid-cols-2">
                 {items.map((r) => (
                   <Card key={r.id} className="glass-panel-lift border-white/[0.08]">
-                    <CardContent className="space-y-4 pt-5">
-                      <div className="space-y-2">
+                    <CardContent className="space-y-2.5 px-3.5 pt-3.5 pb-3.5">
+                      <div className="space-y-1.5">
                         <div className="flex items-start justify-between gap-3">
                           <div>
-                            <h3 className="font-heading text-lg font-semibold leading-snug tracking-tight">
+                            <h3 className="font-heading text-[0.95rem] font-semibold leading-snug tracking-tight">
                               {r.title || "Untitled"}
                             </h3>
-                            <p className="mt-1 text-sm text-muted-foreground">
+                            <p className="mt-0.5 text-[0.78rem] text-muted-foreground">
                               {getResumeTemplateMeta(r.template_key).label}
                             </p>
                           </div>
-                          <span className="rounded-full bg-muted px-2.5 py-1 text-[0.68rem] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                          <span className="rounded-full bg-muted px-2 py-0.5 text-[0.62rem] font-medium uppercase tracking-[0.14em] text-muted-foreground">
                             {r.status === "complete" ? "Complete" : "Draft"}
                           </span>
                         </div>
-                        <p className="text-xs tabular-nums text-muted-foreground">
+                        <p className="text-[0.72rem] tabular-nums text-muted-foreground">
                           Updated {formatDate(r.updated_at)}
                         </p>
                       </div>
@@ -287,57 +364,46 @@ export function DashboardResumeList() {
             ) : null}
           </div>
 
-          <div className="space-y-4">
+          <div>
             <Card className="glass-panel border-white/[0.08]">
-              <CardHeader>
-                <CardTitle>Next steps</CardTitle>
-                <CardDescription>Suggested actions to keep your job-search workflow moving.</CardDescription>
+              <CardHeader className="space-y-0 px-3.5 pt-3.5 pb-2">
+                <CardTitle className="text-[0.85rem]">Next & activity</CardTitle>
+                <CardDescription className="text-[0.72rem] leading-snug">
+                  Suggested moves and recent PDFs.
+                </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-3">
-                {nextSteps.length === 0 ? (
-                  <EmptyState
-                    title="Everything is in motion"
-                    description="Your workspace already has resumes, supporting docs, and activity. Keep refining and exporting as roles progress."
-                    className="px-4 py-8"
-                  />
-                ) : (
-                  nextSteps.map((step) => (
-                    <div key={step.title} className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
-                      <p className="font-medium text-foreground">{step.title}</p>
-                      <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{step.body}</p>
-                      <Button asChild variant="ghost" size="sm" className="mt-3">
-                        <Link href={step.href}>
-                          {step.cta}
-                          <ArrowRight className="ml-2 size-4" />
-                        </Link>
-                      </Button>
+              <CardContent className="divide-y divide-white/10 px-3.5 pb-3.5">
+                <div className="space-y-2 pb-3">
+                  {nextSteps.length === 0 ? (
+                    <p className="text-[0.72rem] text-muted-foreground">No queued suggestions — you are covering the bases.</p>
+                  ) : (
+                    nextSteps.map((step) => (
+                      <div key={step.title} className="rounded-md border border-white/8 bg-white/[0.02] px-2.5 py-2">
+                        <p className="text-[0.78rem] font-medium text-foreground">{step.title}</p>
+                        <p className="mt-0.5 line-clamp-2 text-[0.7rem] leading-snug text-muted-foreground">{step.body}</p>
+                        <Button asChild variant="link" size="sm" className="mt-1 h-auto px-0 py-0 text-[0.72rem]">
+                          <Link href={step.href}>
+                            {step.cta}
+                            <ArrowRight className="ml-1 size-3" />
+                          </Link>
+                        </Button>
+                      </div>
+                    ))
+                  )}
+                </div>
+                <div className="space-y-2 pt-3">
+                  <p className="text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Recent exports</p>
+                  {exports.data?.map((item) => (
+                    <div key={item.id} className="flex flex-col gap-0.5 border-b border-white/5 pb-2 last:border-0 last:pb-0">
+                      <p className="text-[0.78rem] font-medium text-foreground">{item.resume_title}</p>
+                      <p className="text-[0.68rem] text-muted-foreground">{getResumeTemplateMeta(item.template_key).label}</p>
+                      <p className="text-[0.65rem] tabular-nums text-muted-foreground/90">{formatDate(item.created_at)}</p>
                     </div>
-                  ))
-                )}
-              </CardContent>
-            </Card>
-
-            <Card className="glass-panel border-white/[0.08]">
-              <CardHeader>
-                <CardTitle>Recent activity</CardTitle>
-                <CardDescription>Latest exports, applications, and letter work across your workspace.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {exports.data?.map((item) => (
-                  <div key={item.id} className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
-                    <p className="font-medium text-foreground">{item.resume_title}</p>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      Exported with {getResumeTemplateMeta(item.template_key).label}
-                    </p>
-                    <p className="mt-2 text-xs tabular-nums text-muted-foreground">{formatDate(item.created_at)}</p>
-                  </div>
-                )) ?? null}
-
-                {!exports.isLoading && (exports.data?.length ?? 0) === 0 ? (
-                  <p className="text-sm leading-relaxed text-muted-foreground">
-                    No recent exports yet. Once you generate PDFs, activity will show up here for quick reference.
-                  </p>
-                ) : null}
+                  )) ?? null}
+                  {!exports.isLoading && (exports.data?.length ?? 0) === 0 ? (
+                    <p className="text-[0.72rem] text-muted-foreground">No exports yet.</p>
+                  ) : null}
+                </div>
               </CardContent>
             </Card>
           </div>

@@ -12,6 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.v1.router import api_router
 from app.core.config import settings
 from app.core.database import ensure_database_schema
+from app.core.startup_checks import assert_production_config_or_exit
 from app.core.exceptions import (
     AppException,
     app_exception_handler,
@@ -27,6 +28,7 @@ logger = get_logger(__name__)
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     setup_logging()
+    assert_production_config_or_exit(settings)
     if settings.AUTO_CREATE_SCHEMA:
         await ensure_database_schema()
     ensure_storage_ready()

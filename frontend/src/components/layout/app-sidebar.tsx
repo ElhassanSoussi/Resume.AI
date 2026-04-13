@@ -62,7 +62,7 @@ export function SidebarNav({ className }: { className?: string }) {
       <div className="mt-auto border-t border-white/5 p-4">
         <div className="glass-subtle flex items-start gap-2.5 rounded-lg px-3 py-2.5 text-[0.75rem] leading-snug text-muted-foreground">
           <FileText className="mt-0.5 size-3.5 shrink-0 opacity-80" aria-hidden />
-          <span>Changes save through the API when you are authenticated.</span>
+          <span>Your work saves automatically. AI improves clarity without inventing facts.</span>
         </div>
       </div>
     </div>

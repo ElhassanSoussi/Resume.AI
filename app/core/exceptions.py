@@ -82,11 +82,13 @@ async def validation_exception_handler(
 
 async def generic_exception_handler(_request: Request, exc: Exception) -> JSONResponse:
     from app.core.logging import get_logger
+    from app.core.observability import capture_exception
 
     get_logger(__name__).exception(
         "app.unhandled_exception",
         error_type=type(exc).__name__,
     )
+    capture_exception(exc, hint="unhandled_http")
     detail = "Something went wrong. Please refresh and try again."
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

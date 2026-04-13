@@ -17,6 +17,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useAiResumeMutations } from "@/hooks/use-ai-resume";
 import { applyOptimizeResult } from "@/lib/ai/apply-optimize";
+import { ANALYTICS_EVENTS, track } from "@/lib/analytics/track";
 import { resumeFormToOptimizeRequest } from "@/lib/ai/payloads";
 import type { ResumeWritingMode } from "@/lib/types/ai";
 import type { ResumeFullUpdateFormValues } from "@/lib/validation/resume-schema";
@@ -24,6 +25,7 @@ import type { ResumeFullUpdateFormValues } from "@/lib/validation/resume-schema"
 export type AiResumeMutations = ReturnType<typeof useAiResumeMutations>;
 
 type Props = {
+  resumeId: string;
   getValues: UseFormGetValues<ResumeFullUpdateFormValues>;
   setValue: UseFormSetValue<ResumeFullUpdateFormValues>;
   ai: AiResumeMutations;
@@ -36,13 +38,14 @@ const WRITING_MODE_OPTIONS: Array<{
   label: string;
   helper: string;
 }> = [
-  { value: "balanced", label: "Balanced", helper: "Best default for most roles." },
-  { value: "concise", label: "Concise", helper: "Tighter phrasing and faster scanning." },
-  { value: "achievement_focused", label: "Achievement", helper: "Highlights ownership when facts support it." },
-  { value: "ats_focused", label: "ATS", helper: "More direct wording for parser-heavy applications." },
-];
+    { value: "balanced", label: "Balanced", helper: "Best default for most roles." },
+    { value: "concise", label: "Concise", helper: "Tighter phrasing and faster scanning." },
+    { value: "achievement_focused", label: "Achievement", helper: "Highlights ownership when facts support it." },
+    { value: "ats_focused", label: "ATS", helper: "More direct wording for parser-heavy applications." },
+  ];
 
 export function ResumeAiPanel({
+  resumeId,
   getValues,
   setValue,
   ai,
@@ -91,6 +94,7 @@ export function ResumeAiPanel({
       const payload = resumeFormToOptimizeRequest(values, writingMode);
       optimizeResume.mutate(payload, {
         onSuccess: (res) => {
+          track(ANALYTICS_EVENTS.AI_OPTIMIZE_USED, { resume_id: resumeId });
           applyOptimizeResult(res, setValue, getValues);
           setOptimizeOpen(false);
           if (res.ats_notes?.trim()) {
@@ -110,12 +114,12 @@ export function ResumeAiPanel({
     (optimizeResume.isError ? "We couldn’t run optimization right now." : null);
 
   return (
-    <div className="space-y-5 rounded-xl border border-primary/20 bg-gradient-to-br from-primary/5 via-transparent to-muted/30 p-4">
+    <div className="space-y-4 rounded-xl border border-primary/20 bg-gradient-to-br from-primary/5 via-transparent to-muted/30 p-4">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h3 className="font-heading text-sm font-semibold text-foreground">AI writing assistant</h3>
           <p className="text-xs text-muted-foreground">
-            Your facts stay yours. AI rewrites for clarity, strength, and recruiter readability without inventing new claims.
+            This is optimization, not invention. AI sharpens your wording for clarity, impact, and recruiter readability — your facts, experience, and credentials stay exactly as you wrote them.
           </p>
         </div>
         {aiBusy ? (
@@ -134,7 +138,7 @@ export function ResumeAiPanel({
 
       <div className="space-y-2">
         <p className="text-[0.72rem] font-medium uppercase tracking-[0.18em] text-muted-foreground">Writing mode</p>
-        <div className="grid gap-2 lg:grid-cols-4">
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
           {WRITING_MODE_OPTIONS.map((option) => {
             const active = option.value === writingMode;
             return (
@@ -144,19 +148,43 @@ export function ResumeAiPanel({
                 disabled={aiBusy}
                 onClick={() => onWritingModeChange(option.value)}
                 className={[
-                  "rounded-2xl border p-3 text-left transition disabled:opacity-50",
+                  "rounded-xl border px-3 py-2.5 text-left transition disabled:opacity-50",
                   active
                     ? "border-primary/60 bg-primary/10 ring-1 ring-primary/20"
                     : "border-white/10 bg-card/40 hover:border-white/20 hover:bg-card/60",
                 ].join(" ")}
               >
-                <p className="font-medium text-foreground">{option.label}</p>
-                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{option.helper}</p>
+                <p className="text-[0.82rem] font-medium text-foreground">{option.label}</p>
+                <p className="mt-0.5 text-[0.72rem] leading-snug text-muted-foreground">{option.helper}</p>
               </button>
             );
           })}
         </div>
       </div>
+
+      <details className="rounded-lg border border-white/10 bg-black/10 px-3 py-2 text-left">
+        <summary className="cursor-pointer text-[0.72rem] font-medium text-muted-foreground">
+          When to use each writing mode
+        </summary>
+        <ul className="mt-2 space-y-2 text-[0.72rem] leading-relaxed text-muted-foreground">
+          <li>
+            <span className="font-medium text-foreground/90">Balanced</span> — default for most roles; keeps tone
+            neutral and readable.
+          </li>
+          <li>
+            <span className="font-medium text-foreground/90">Concise</span> — best when you need shorter lines or
+            dense experience without losing facts.
+          </li>
+          <li>
+            <span className="font-medium text-foreground/90">Achievement-focused</span> — sharpens ownership and
+            outcomes only where your bullets already support them.
+          </li>
+          <li>
+            <span className="font-medium text-foreground/90">ATS-focused</span> — plainer phrasing for
+            parser-heavy portals; pair with ATS Export when uploading.
+          </li>
+        </ul>
+      </details>
 
       <div className="flex flex-wrap gap-2">
         <Button

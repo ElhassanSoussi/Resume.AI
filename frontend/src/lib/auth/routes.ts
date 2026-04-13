@@ -12,6 +12,9 @@ export const MARKETING_ROUTES = {
   home: "/",
   pricing: "/pricing",
   examples: "/examples",
+  privacy: "/privacy",
+  terms: "/terms",
+  support: "/support",
 } as const;
 
 export const APP_ROUTES = {

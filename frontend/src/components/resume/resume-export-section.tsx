@@ -1,9 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Download, FileDown, Loader2, Lock, Sparkles } from "lucide-react";
+import { ArrowRight, Download, FileDown, Loader2, Lock, Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { ExportModePicker } from "@/components/resume/export-mode-picker";
@@ -23,14 +24,23 @@ import {
   useLatestExportMetadata,
   useResumePaymentStatus,
 } from "@/hooks/use-billing";
+import { useResume } from "@/hooks/use-resumes";
 import { ApiError } from "@/lib/api/client";
 import { getAppOrigin } from "@/lib/app-url";
+import { APP_ROUTES } from "@/lib/auth/routes";
+import {
+  loadWorkspaceCareerPrefs,
+  suggestedExportMode,
+} from "@/lib/onboarding/workspace-preferences";
 import {
   DEFAULT_EXPORT_MODE,
   getResumeTemplateMeta,
   type ResumeExportMode,
 } from "@/lib/resume/constants";
+import { resumeReadToFormValues } from "@/lib/resume/mappers";
+import { analyzeResumeReadiness } from "@/lib/resume/readiness";
 import { cn } from "@/lib/utils";
+import { ANALYTICS_EVENTS, track } from "@/lib/analytics/track";
 
 type Props = {
   resumeId: string;
@@ -45,8 +55,15 @@ export function ResumeExportSection({ resumeId, templateKey }: Props) {
 
   const [unlockOpen, setUnlockOpen] = useState(false);
   const [exportMode, setExportMode] = useState<ResumeExportMode>(DEFAULT_EXPORT_MODE);
+  const [exportMilestoneOpen, setExportMilestoneOpen] = useState(false);
   const successToastSent = useRef(false);
   const cancelToastSent = useRef(false);
+
+  const { data: resumeSnapshot } = useResume(resumeId);
+  const readiness = useMemo(() => {
+    if (!resumeSnapshot) return null;
+    return analyzeResumeReadiness(resumeReadToFormValues(resumeSnapshot));
+  }, [resumeSnapshot]);
 
   const { data: payStatus, isLoading: payLoading, refetch: refetchPay } = useResumePaymentStatus(resumeId);
   const paid = payStatus?.paid === true;
@@ -63,6 +80,10 @@ export function ResumeExportSection({ resumeId, templateKey }: Props) {
     payStatus?.status === "pending" || payStatus?.status === "processing";
   const checkoutBlocked = busy || paymentPending;
   const designedTemplate = getResumeTemplateMeta(templateKey);
+
+  useEffect(() => {
+    setExportMode(suggestedExportMode(loadWorkspaceCareerPrefs()));
+  }, []);
 
   useEffect(() => {
     if (paymentParam === "success") {
@@ -84,13 +105,14 @@ export function ResumeExportSection({ resumeId, templateKey }: Props) {
 
   useEffect(() => {
     if (paymentParam === "success" && paid && !successToastSent.current) {
+      track(ANALYTICS_EVENTS.PAYMENT_SUCCEEDED, { resume_id: resumeId });
       successToastSent.current = true;
       toast.success("Payment confirmed", {
         description: "You can generate and download your PDF export.",
       });
       router.replace(pathname, { scroll: false });
     }
-  }, [paymentParam, paid, pathname, router]);
+  }, [paymentParam, paid, pathname, router, resumeId]);
 
   useEffect(() => {
     if (paymentParam === "canceled" && !cancelToastSent.current) {
@@ -107,6 +129,7 @@ export function ResumeExportSection({ resumeId, templateKey }: Props) {
       });
       return;
     }
+    track(ANALYTICS_EVENTS.CHECKOUT_STARTED, { resume_id: resumeId });
     const origin = getAppOrigin();
     if (!origin) {
       toast.error("Missing app URL", { description: "Set NEXT_PUBLIC_APP_URL or open the app in a browser." });
@@ -140,8 +163,10 @@ export function ResumeExportSection({ resumeId, templateKey }: Props) {
       },
       {
         onSuccess: (meta) => {
+          track(ANALYTICS_EVENTS.PDF_GENERATED, { resume_id: resumeId, export_mode: exportMode });
           toast.success("PDF ready", { description: meta.suggested_filename });
           void refetchExport();
+          setExportMilestoneOpen(true);
         },
         onError: (e) => {
           const msg = e instanceof ApiError ? e.message : "Export failed.";
@@ -210,9 +235,22 @@ export function ResumeExportSection({ resumeId, templateKey }: Props) {
             </div>
             <p className="max-w-xl text-sm leading-relaxed text-muted-foreground">
               {paid
-                ? "Print-ready export from your current draft. Regenerate anytime after edits."
-                : "One-time unlock for this résumé: generate ATS-safe or designed white-paper exports."}
+                ? "Print-ready export from your current draft. Regenerate anytime after edits — your unlock never expires."
+                : "One-time unlock for this resume. Generate ATS-safe or recruiter-ready designed exports as many times as you need."}
             </p>
+            <p className="max-w-xl text-xs leading-relaxed text-muted-foreground/90">
+              Stripe handles payment; we never store your card. Your PDF is generated from the draft saved in this
+              workspace — review the preview if you are unsure.
+            </p>
+            {readiness && exportMode !== readiness.exportHint.recommendMode ? (
+              <p className="max-w-xl rounded-lg border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-xs text-amber-100/90">
+                <span className="font-medium text-amber-50">Heads up:</span> For this draft, we would start in{" "}
+                <span className="font-medium">
+                  {readiness.exportHint.recommendMode === "ats" ? "ATS Export" : "Designed Export"}
+                </span>{" "}
+                — {readiness.exportHint.reason} You can still switch if you know how this employer handles résumés.
+              </p>
+            ) : null}
             <div className="max-w-2xl space-y-3">
               <div>
                 <p className="text-[0.72rem] font-medium uppercase tracking-[0.18em] text-muted-foreground">
@@ -247,7 +285,10 @@ export function ResumeExportSection({ resumeId, templateKey }: Props) {
                   type="button"
                   variant="default"
                   disabled={checkoutBlocked}
-                  onClick={() => setUnlockOpen(true)}
+                  onClick={() => {
+                    track(ANALYTICS_EVENTS.EXPORT_UNLOCK_CLICKED, { resume_id: resumeId });
+                    setUnlockOpen(true);
+                  }}
                   className="btn-inset min-w-[160px]"
                 >
                   {checkoutMut.isPending || paymentPending ? (
@@ -306,13 +347,58 @@ export function ResumeExportSection({ resumeId, templateKey }: Props) {
         ) : null}
       </div>
 
+      {paid && exportMilestoneOpen ? (
+        <div className="glass-panel rounded-xl border border-emerald-500/20 bg-emerald-500/[0.06] p-5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div className="space-y-1">
+              <p className="font-heading text-sm font-semibold text-foreground">Export milestone</p>
+              <p className="text-sm text-muted-foreground">
+                Strong work — you have a file ready to send. When you are done downloading, keep momentum with the next
+                step that matches how you apply.
+              </p>
+            </div>
+            <Button type="button" variant="ghost" size="sm" className="shrink-0" onClick={() => setExportMilestoneOpen(false)}>
+              Dismiss
+            </Button>
+          </div>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              disabled={busy || exportLoading || latestExport?.status !== "completed"}
+              onClick={openDownload}
+            >
+              <Download className="mr-1.5 size-3.5" />
+              Download again
+            </Button>
+            <Button type="button" size="sm" variant="outline" asChild>
+              <Link href={APP_ROUTES.resumeTailor(resumeId)}>
+                Tailor for another role
+                <ArrowRight className="ml-1.5 size-3.5" />
+              </Link>
+            </Button>
+            <Button type="button" size="sm" variant="outline" asChild>
+              <Link href={APP_ROUTES.coverLetterNew}>Cover letter</Link>
+            </Button>
+            <Button type="button" size="sm" variant="outline" asChild>
+              <Link href={APP_ROUTES.jobs}>Job tracker</Link>
+            </Button>
+            <Button type="button" size="sm" variant="ghost" asChild>
+              <Link href={APP_ROUTES.resumeVersions(resumeId)}>Versions</Link>
+            </Button>
+          </div>
+        </div>
+      ) : null}
+
       <Dialog open={unlockOpen} onOpenChange={setUnlockOpen}>
         <DialogContent className="max-w-md border-white/[0.12] bg-card/95 shadow-2xl backdrop-blur-md">
           <DialogHeader>
             <DialogTitle>Unlock PDF export</DialogTitle>
             <DialogDescription>
-              Checkout happens on Stripe. When it completes, return here to generate either an ATS-safe export or a
-              designed recruiter-ready PDF on white paper.
+              Checkout happens on Stripe&apos;s secure page. When it completes, return here to generate either an
+              ATS-safe export or a designed recruiter-ready PDF on white paper. You can regenerate after edits — the
+              unlock stays with this resume.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2 sm:justify-end">

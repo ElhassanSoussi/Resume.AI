@@ -6,6 +6,9 @@ import { MARKETING_ROUTES } from "@/lib/auth/routes";
 const links = [
   { href: MARKETING_ROUTES.pricing, label: "Pricing" },
   { href: MARKETING_ROUTES.examples, label: "Examples" },
+  { href: MARKETING_ROUTES.support, label: "Support" },
+  { href: MARKETING_ROUTES.privacy, label: "Privacy" },
+  { href: MARKETING_ROUTES.terms, label: "Terms" },
   { href: "/login", label: "Log in" },
 ] as const;
 
@@ -16,8 +19,8 @@ export function MarketingFooter() {
         <div>
           <p className="font-heading text-base font-semibold">{APP_NAME}</p>
           <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-            Premium resume tooling for ambitious candidates. Built for clarity, speed, and
-            results.
+            Resume, tailor, cover letter, tracker, and export in one workspace — calm UI, white-paper PDFs, fact-first
+            AI.
           </p>
         </div>
         <nav className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">

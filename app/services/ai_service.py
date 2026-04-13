@@ -139,14 +139,16 @@ class AIService:
         job_description: str,
         company_name: str | None,
         target_role: str | None,
+        tone: str = "professional",
     ) -> str:
         """Return a plain-text cover letter body generated from the resume + job description."""
-        system = prompt_builders.system_generate_cover_letter()
+        system = prompt_builders.system_generate_cover_letter(tone=tone)
         user = prompt_builders.user_generate_cover_letter(
             resume_snapshot=resume_snapshot,
             job_description=job_description,
             company_name=company_name,
             target_role=target_role,
+            tone=tone,
         )
         raw = await self._complete_and_parse(
             system=system,

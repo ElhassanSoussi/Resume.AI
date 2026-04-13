@@ -54,33 +54,25 @@ export function BillingDashboard() {
       eyebrow="Account"
       title="Payments & exports"
       description="Receipts, export history, and the clearest path from payment to final PDF."
+      className="space-y-4"
     >
-      <div className="space-y-8">
+      <div className="space-y-4">
         <ApiTokenCallout />
 
-        <div className="grid gap-4 lg:grid-cols-3">
-          <Card className="glass-panel border-white/[0.09]">
-            <CardContent className="pt-5">
-              <p className="text-[0.72rem] font-medium uppercase tracking-[0.18em] text-muted-foreground">Payments</p>
-              <p className="mt-2 font-heading text-3xl font-semibold tracking-tight text-foreground">{paymentCount}</p>
-              <p className="mt-2 text-sm text-muted-foreground">Successful and pending checkout attempts live here.</p>
-            </CardContent>
-          </Card>
-          <Card className="glass-panel border-white/[0.09]">
-            <CardContent className="pt-5">
-              <p className="text-[0.72rem] font-medium uppercase tracking-[0.18em] text-muted-foreground">Exports</p>
-              <p className="mt-2 font-heading text-3xl font-semibold tracking-tight text-foreground">{exportCount}</p>
-              <p className="mt-2 text-sm text-muted-foreground">Generated PDFs stay available here after payment.</p>
-            </CardContent>
-          </Card>
-          <Card className="glass-panel border-white/[0.09]">
-            <CardContent className="pt-5">
-              <p className="text-[0.72rem] font-medium uppercase tracking-[0.18em] text-muted-foreground">How it works</p>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                Purchase once per resume, return to the editor, generate the PDF, then download it from export history anytime.
-              </p>
-            </CardContent>
-          </Card>
+        <div className="flex flex-col gap-3 rounded-xl border border-white/[0.08] bg-card/25 px-3 py-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-1 sm:gap-8">
+            <div>
+              <p className="text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Payments</p>
+              <p className="font-heading text-xl font-semibold tracking-tight text-foreground">{paymentCount}</p>
+            </div>
+            <div>
+              <p className="text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Exports</p>
+              <p className="font-heading text-xl font-semibold tracking-tight text-foreground">{exportCount}</p>
+            </div>
+          </div>
+          <p className="max-w-md text-[0.72rem] leading-snug text-muted-foreground">
+            Pay once per resume · regenerate PDFs after edits · download from history below.
+          </p>
         </div>
 
         <Card className="glass-panel border-white/[0.09]">

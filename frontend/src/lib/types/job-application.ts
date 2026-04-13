@@ -25,6 +25,8 @@ export type JobApplication = {
   job_description: string | null;
   notes: string | null;
   applied_date: string | null;
+  follow_up_date: string | null;
+  job_posting_url: string | null;
   resume_version_id: string | null;
   cover_letter_id: string | null;
   created_at: string;
@@ -38,6 +40,8 @@ export type JobApplicationCreate = {
   job_description?: string | null;
   notes?: string | null;
   applied_date?: string | null;
+  follow_up_date?: string | null;
+  job_posting_url?: string | null;
   resume_version_id?: string | null;
   cover_letter_id?: string | null;
 };

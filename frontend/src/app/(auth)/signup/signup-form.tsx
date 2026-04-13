@@ -7,6 +7,7 @@ import { toast } from "sonner";
 
 import { registerUser } from "@/lib/api/auth";
 import { AUTH_ROUTES, APP_ROUTES } from "@/lib/auth/routes";
+import { ANALYTICS_EVENTS, track } from "@/lib/analytics/track";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -35,15 +36,18 @@ export function SignupForm() {
     }
 
     setPending(true);
+    track(ANALYTICS_EVENTS.SIGNUP_STARTED);
     try {
       const result = await registerUser({ email, password, full_name });
       if (result.session != null) {
+        track(ANALYTICS_EVENTS.SIGNUP_COMPLETED, { has_session: true });
         toast.success("Account created", { description: "Welcome to ResumeForge AI." });
         router.replace(APP_ROUTES.dashboard);
         router.refresh();
         return;
       }
 
+      track(ANALYTICS_EVENTS.SIGNUP_COMPLETED, { has_session: false });
       setConfirmationEmail(email);
       toast.success("Confirm your email", {
         description: "We sent you a confirmation link before you can sign in.",
@@ -67,7 +71,9 @@ export function SignupForm() {
       <CardHeader>
         <CardTitle className="font-heading text-2xl">Create your workspace</CardTitle>
         <CardDescription>
-          {"Use your work email — we'll send a confirmation link before first login."}
+          After you sign in, you will land on the dashboard: create a resume, optional quick career setup, then editor →
+          preview → tailor or cover letter → export when you are ready. Use a real email — we may send a confirmation
+          link before first login.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -119,7 +125,11 @@ export function SignupForm() {
             </Button>
           </form>
         )}
-        <p className="mt-6 text-center text-sm text-muted-foreground">
+        <p className="mt-6 text-center text-xs leading-relaxed text-muted-foreground">
+          By continuing you agree to use the product responsibly for your own career materials. Payments for PDF export
+          run through Stripe; we do not store your card.
+        </p>
+        <p className="mt-4 text-center text-sm text-muted-foreground">
           Already have an account?{" "}
           <Link href={AUTH_ROUTES.login} className="font-medium text-primary hover:underline">
             Log in

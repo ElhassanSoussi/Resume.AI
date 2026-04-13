@@ -16,11 +16,11 @@ export function TemplateShowcaseSection() {
       eyebrow="Layouts"
       title={
         <>
-          Three engines.{" "}
-          <span className="text-gradient-brand">One content model.</span>
+          Designed templates +{" "}
+          <span className="text-gradient-brand">an ATS-safe path</span>
         </>
       }
-      subtitle="Swap the entire visual system without retyping — every template is production-tuned for PDF export."
+      subtitle="Pick a white-paper layout for humans; switch to ATS Export when the portal demands a plainer file. Your content moves with you."
     >
       <div className="grid gap-6 lg:grid-cols-3">
         {TEMPLATE_SHOWCASE.map((tpl, i) => (
@@ -48,13 +48,9 @@ export function TemplateShowcaseSection() {
                   </div>
                 </div>
                 <div className="flex flex-1 flex-col p-6">
-                  <p className="text-xs font-semibold uppercase tracking-wider text-primary">
-                    {tpl.tagline}
-                  </p>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-primary">{tpl.tagline}</p>
                   <h3 className="mt-2 font-heading text-xl font-bold">{tpl.name}</h3>
-                  <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">
-                    {tpl.description}
-                  </p>
+                  <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">{tpl.description}</p>
                 </div>
               </div>
             </motion.div>
@@ -63,7 +59,7 @@ export function TemplateShowcaseSection() {
       </div>
       <FadeIn className="mt-12 flex justify-center" delay={0.12}>
         <Button size="lg" variant="outline" asChild>
-          <Link href={MARKETING_ROUTES.examples}>Explore layout deep-dives</Link>
+          <Link href={MARKETING_ROUTES.examples}>Layout examples & deep dives</Link>
         </Button>
       </FadeIn>
     </SectionShell>

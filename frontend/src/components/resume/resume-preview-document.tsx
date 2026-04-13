@@ -1,5 +1,8 @@
+import { useId } from "react";
+
 import type { ResumeExportMode, ResumeTemplateId } from "@/lib/resume/constants";
 import type { ResumeRead } from "@/lib/types/resume";
+import { cn } from "@/lib/utils";
 
 function formatRange(start: string, end: string | null, isCurrent: boolean): string {
   const fmt = (iso: string) => {
@@ -451,6 +454,10 @@ export function ResumePreviewDocument({
   const pageWidth = Math.round(theme.pageWidth * scale);
   const pageMinHeight = Math.round(theme.pageMinHeight * scale);
 
+  const scopeId = useId().replace(/:/g, "");
+  const scopedRootClass = `resume-preview-doc-${scopeId}`;
+  const scopedCss = `.${scopedRootClass}{width:${pageWidth}px;min-height:${pageMinHeight}px;font-family:${JSON.stringify(theme.fontFamily)};${theme.headingFontFamily ? `--preview-heading-font:${JSON.stringify(theme.headingFontFamily)};` : ""}}`;
+
   const contactBlock = (
     <div className={theme.contactRight ? "space-y-2 text-sm sm:text-right" : "space-y-2 text-sm"}>
       {contactBits.length > 0 ? (
@@ -479,98 +486,91 @@ export function ResumePreviewDocument({
   );
 
   return (
-    <article
-      className={`mx-auto w-full rounded-[3px] shadow-[0_34px_82px_-58px_rgba(0,0,0,0.6)] ${theme.pageClass}`}
-      style={{
-        width: `${pageWidth}px`,
-        minHeight: `${pageMinHeight}px`,
-      }}
-    >
-      <div
-        className={theme.pagePaddingClass}
-        style={{
-          fontFamily: theme.fontFamily,
-          minHeight: `${pageMinHeight}px`,
-        }}
-      >
-        <header className={theme.headerClass}>
-          {theme.accentClass ? <div className={theme.accentClass} /> : null}
-
-          {theme.headerLayout === "centered" ? (
-            <div className="space-y-4 text-center">
-              <div>
-                <p className={theme.roleClass}>{resume.title}</p>
-                <h1
-                  className={theme.nameClass}
-                  style={theme.headingFontFamily ? { fontFamily: theme.headingFontFamily } : undefined}
-                >
-                  {name}
-                </h1>
-              </div>
-              {contactBlock}
-            </div>
-          ) : theme.headerLayout === "split" ? (
-            <div className={theme.headerInnerClass}>
-              <div>
-                <p className={theme.roleClass}>{resume.title}</p>
-                <h1
-                  className={theme.nameClass}
-                  style={theme.headingFontFamily ? { fontFamily: theme.headingFontFamily } : undefined}
-                >
-                  {name}
-                </h1>
-              </div>
-              {contactBlock}
-            </div>
-          ) : (
-            <div>
-              <p className={theme.roleClass}>{resume.title}</p>
-              <h1
-                className={theme.nameClass}
-                style={theme.headingFontFamily ? { fontFamily: theme.headingFontFamily } : undefined}
-              >
-                {name}
-              </h1>
-              <div className="mt-3">{contactBlock}</div>
-            </div>
-          )}
-        </header>
-
-        {resume.summary?.body ? (
-          <section className="mt-8">
-            <h2 className={theme.sectionTitleClass}>{theme.summaryTitle}</h2>
-            <p className={`mt-4 whitespace-pre-wrap ${theme.bodyTextClass}`}>{resume.summary.body}</p>
-          </section>
-        ) : null}
-
-        {theme.educationBeforeExperience ? (
-          <>
-            {renderEducation(resume, theme)}
-            {renderExperience(resume, theme)}
-            {renderSkills(resume, theme, "mt-8")}
-          </>
-        ) : theme.useTwoColumnFooter ? (
-          <>
-            {renderExperience(resume, theme)}
-            <div className="mt-8 grid gap-8 md:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)]">
-              {renderEducation(resume, theme)}
-              {renderSkills(resume, theme)}
-            </div>
-          </>
-        ) : (
-          <>
-            {renderExperience(resume, theme)}
-            {renderEducation(resume, theme)}
-            {renderSkills(resume, theme, "mt-8")}
-          </>
+    <>
+      <style dangerouslySetInnerHTML={{ __html: scopedCss }} />
+      <article
+        className={cn(
+          scopedRootClass,
+          `mx-auto flex w-full flex-col rounded-[3px] shadow-[0_2px_8px_rgba(0,0,0,0.12),0_18px_48px_-16px_rgba(0,0,0,0.5)] ${theme.pageClass}`,
         )}
+      >
+        <div className={cn(theme.pagePaddingClass, "flex min-h-full flex-1 flex-col")}>
+          <header className={theme.headerClass}>
+            {theme.accentClass ? <div className={theme.accentClass} /> : null}
 
-        <footer className={`mt-10 border-t pt-4 text-[0.74rem] uppercase tracking-[0.18em] ${theme.footerBorderClass} ${theme.footerTextClass}`}>
-          {exportMode === "ats"
-            ? "ATS export preview · white paper · parser-safe structure"
-            : "Designed export preview · white paper · recruiter-ready presentation"}
-        </footer>
-      </div>
-    </article>
+            {theme.headerLayout === "centered" ? (
+              <div className="space-y-4 text-center">
+                <div>
+                  <p className={theme.roleClass}>{resume.title}</p>
+                  <h1
+                    className={cn(theme.nameClass, theme.headingFontFamily && "[font-family:var(--preview-heading-font)]")}
+                  >
+                    {name}
+                  </h1>
+                </div>
+                {contactBlock}
+              </div>
+            ) : theme.headerLayout === "split" ? (
+              <div className={theme.headerInnerClass}>
+                <div>
+                  <p className={theme.roleClass}>{resume.title}</p>
+                  <h1
+                    className={cn(theme.nameClass, theme.headingFontFamily && "[font-family:var(--preview-heading-font)]")}
+                  >
+                    {name}
+                  </h1>
+                </div>
+                {contactBlock}
+              </div>
+            ) : (
+              <div>
+                <p className={theme.roleClass}>{resume.title}</p>
+                <h1
+                  className={cn(theme.nameClass, theme.headingFontFamily && "[font-family:var(--preview-heading-font)]")}
+                >
+                  {name}
+                </h1>
+                <div className="mt-3">{contactBlock}</div>
+              </div>
+            )}
+          </header>
+
+          {resume.summary?.body ? (
+            <section className="mt-8">
+              <h2 className={theme.sectionTitleClass}>{theme.summaryTitle}</h2>
+              <p className={`mt-4 whitespace-pre-wrap ${theme.bodyTextClass}`}>{resume.summary.body}</p>
+            </section>
+          ) : null}
+
+          {theme.educationBeforeExperience ? (
+            <>
+              {renderEducation(resume, theme)}
+              {renderExperience(resume, theme)}
+              {renderSkills(resume, theme, "mt-8")}
+            </>
+          ) : theme.useTwoColumnFooter ? (
+            <>
+              {renderExperience(resume, theme)}
+              <div className="mt-8 grid gap-8 md:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)]">
+                {renderEducation(resume, theme)}
+                {renderSkills(resume, theme)}
+              </div>
+            </>
+          ) : (
+            <>
+              {renderExperience(resume, theme)}
+              {renderEducation(resume, theme)}
+              {renderSkills(resume, theme, "mt-8")}
+            </>
+          )}
+
+          <footer className={`mt-10 border-t pt-4 text-[0.74rem] uppercase tracking-[0.18em] ${theme.footerBorderClass} ${theme.footerTextClass}`}>
+            {exportMode === "ats"
+              ? "ATS export preview · white paper · parser-safe structure"
+              : "Designed export preview · white paper · recruiter-ready presentation"}
+          </footer>
+        </div>
+      </article>
+    </>
   );
 }
